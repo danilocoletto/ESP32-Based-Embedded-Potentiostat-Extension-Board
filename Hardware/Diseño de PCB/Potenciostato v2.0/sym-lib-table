@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "potentiostat")(type "KiCad")(uri "${KIPRJMOD}/symlib/potentiostat.kicad_sym")(options "")(descr ""))
+)
