@@ -48,14 +48,6 @@ The repository is organized as follows:
 └── README.md # This file
 ```
 
-
-├── Hardware/ # KiCad project files (Schematics, PCB Layout, BOM)
-├── Firmware/ # ESP-IDF C/C++ source code
-│ ├── main/ # Core logic (FreeRTOS tasks, State Machine)
-│ ├── components/ # Drivers for DAC, ADC, and Potentiostat control
-├── Docs/ # Datasheets and design notes
-└── README.md # This file
-
 ## 🔌 Pinout & Interface
 
 *> **Note:** As the PCB layout is being finalized, please refer to the schematic in the `Hardware` folder for the most up-to-date netlist. Below is the current configuration for the ESP32 implementation.*
