@@ -268,265 +268,6 @@
 				)
 			)
 		)
-		(symbol "potentiostat:MAX4477ASA+"
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "IC"
-				(at 24.13 7.62 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-				)
-			)
-			(property "Value" "MAX4477ASA+"
-				(at 24.13 5.08 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-				)
-			)
-			(property "Footprint" "SOIC127P600X175-8N"
-				(at 24.13 -94.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "http://datasheets.maximintegrated.com/en/ds/MAX4475-MAX4489.pdf"
-				(at 24.13 -194.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Description" "OP Amp Dual GP R-R O/P 5.5V"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Height" "1.75"
-				(at 24.13 -394.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Mouser Part Number" "700-MAX4477ASA"
-				(at 24.13 -494.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Analog-Devices-Maxim-Integrated/MAX4477ASA%2b?qs=1THa7WoU59GGZk6NkcEekw%3D%3D"
-				(at 24.13 -594.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer_Name" "Analog Devices"
-				(at 24.13 -694.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer_Part_Number" "MAX4477ASA+"
-				(at 24.13 -794.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(symbol "MAX4477ASA+_1_1"
-				(rectangle
-					(start 5.08 2.54)
-					(end 22.86 -10.16)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type background)
-					)
-				)
-				(pin passive line
-					(at 0 0 0)
-					(length 5.08)
-					(name "OUTA"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -2.54 0)
-					(length 5.08)
-					(name "INA-"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -5.08 0)
-					(length 5.08)
-					(name "INA+"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -7.62 0)
-					(length 5.08)
-					(name "VSS"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 27.94 -7.62 180)
-					(length 5.08)
-					(name "INB+"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "5"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 27.94 -5.08 180)
-					(length 5.08)
-					(name "INB-"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "6"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 27.94 -2.54 180)
-					(length 5.08)
-					(name "OUTB"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "7"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 27.94 0 180)
-					(length 5.08)
-					(name "VDD"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "8"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-		)
 		(symbol "potentiostat:MAX5217GUA+"
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -786,16 +527,50 @@
 				)
 			)
 		)
-		(symbol "power:+3V3"
-			(power)
-			(pin_numbers hide)
-			(pin_names
-				(offset 0) hide)
+		(symbol "potentiostat:OPA2320AIDR"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "#PWR"
-				(at 0 -3.81 0)
+			(property "Reference" "IC"
+				(at 26.67 7.62 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+				)
+			)
+			(property "Value" "OPA2320AIDR"
+				(at 26.67 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+				)
+			)
+			(property "Footprint" "SOIC127P600X175-8N"
+				(at 26.67 -94.92 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "http://www.ti.com/lit/gpn/opa2320"
+				(at 26.67 -194.92 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+					(hide yes)
+				)
+			)
+			(property "Description" "Precision, Zero-Crossover, 20MHz, 0.9pA Ib, RRIO, CMOS Operational Amplifier"
+				(at 2.794 11.938 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -803,93 +578,72 @@
 					(hide yes)
 				)
 			)
-			(property "Value" "+3V3"
-				(at 0 3.556 0)
+			(property "Height" "1.75"
+				(at 26.67 -394.92 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
+					(justify left top)
 					(hide yes)
 				)
 			)
-			(property "Datasheet" ""
-				(at 0 0 0)
+			(property "Mouser Part Number" "595-OPA2320AIDR"
+				(at 26.67 -494.92 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
+					(justify left top)
 					(hide yes)
 				)
 			)
-			(property "Description" "Power symbol creates a global label with name \"+3V3\""
-				(at 0 0 0)
+			(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Texas-Instruments/OPA2320AIDR?qs=tTIQDc3uNmVIif8mgpifPg%3D%3D"
+				(at 26.67 -594.92 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
+					(justify left top)
 					(hide yes)
 				)
 			)
-			(property "ki_keywords" "global power"
-				(at 0 0 0)
+			(property "Manufacturer_Name" "Texas Instruments"
+				(at 26.67 -694.92 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
+					(justify left top)
 					(hide yes)
 				)
 			)
-			(symbol "+3V3_0_1"
-				(polyline
-					(pts
-						(xy -0.762 1.27) (xy 0 2.54)
+			(property "Manufacturer_Part_Number" "OPA2320AIDR"
+				(at 26.67 -794.92 0)
+				(effects
+					(font
+						(size 1.27 1.27)
 					)
+					(justify left top)
+					(hide yes)
+				)
+			)
+			(symbol "OPA2320AIDR_1_1"
+				(rectangle
+					(start 5.08 2.54)
+					(end 25.4 -10.16)
 					(stroke
-						(width 0)
+						(width 0.254)
 						(type default)
 					)
 					(fill
-						(type none)
+						(type background)
 					)
 				)
-				(polyline
-					(pts
-						(xy 0 0) (xy 0 2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 2.54) (xy 0.762 1.27)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "+3V3_1_1"
-				(pin power_in line
-					(at 0 0 90)
-					(length 0)
-					(name "~"
+				(pin passive line
+					(at 0 0 0)
+					(length 5.08)
+					(name "OUT_A"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -897,6 +651,132 @@
 						)
 					)
 					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -2.54 0)
+					(length 5.08)
+					(name "-IN_A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -5.08 0)
+					(length 5.08)
+					(name "+IN_A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -7.62 0)
+					(length 5.08)
+					(name "V_-"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 30.48 -7.62 180)
+					(length 5.08)
+					(name "+IN_B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 30.48 -5.08 180)
+					(length 5.08)
+					(name "-IN_B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 30.48 -2.54 180)
+					(length 5.08)
+					(name "OUT_B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 30.48 0 180)
+					(length 5.08)
+					(name "V+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1154,7 +1034,7 @@
 		(uuid "5172227f-4029-417b-8a41-8acb7709f396")
 	)
 	(junction
-		(at 205.74 99.06)
+		(at 208.28 99.06)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "541f99b5-2460-47ae-8f77-aef7c0fb4b53")
@@ -1184,7 +1064,7 @@
 		(uuid "91f45920-3437-4444-94ff-aa28a97a480d")
 	)
 	(junction
-		(at 217.17 93.98)
+		(at 219.71 93.98)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "9a944916-089a-4214-ba30-06c94711475f")
@@ -1202,7 +1082,7 @@
 		(uuid "a21394be-cbce-4399-92c5-06318666d5d9")
 	)
 	(junction
-		(at 189.23 82.55)
+		(at 191.77 82.55)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "a3712439-e1f7-4686-9059-ec656f7869fa")
@@ -1226,7 +1106,7 @@
 		(uuid "d4662702-2e33-4f91-bedc-541694aca316")
 	)
 	(junction
-		(at 213.36 91.44)
+		(at 215.9 91.44)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "d8310eb7-0518-4526-9be7-c8a172afd77e")
@@ -1244,7 +1124,7 @@
 		(uuid "e5684321-ba88-4778-93f5-2fcf42edb2e8")
 	)
 	(junction
-		(at 209.55 93.98)
+		(at 212.09 93.98)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f9f258b9-23a4-40f1-a159-d18df20e7441")
@@ -1271,7 +1151,7 @@
 	)
 	(wire
 		(pts
-			(xy 203.2 99.06) (xy 205.74 99.06)
+			(xy 207.01 99.06) (xy 208.28 99.06)
 		)
 		(stroke
 			(width 0)
@@ -1281,7 +1161,7 @@
 	)
 	(wire
 		(pts
-			(xy 189.23 82.55) (xy 193.04 82.55)
+			(xy 191.77 82.55) (xy 195.58 82.55)
 		)
 		(stroke
 			(width 0)
@@ -1301,7 +1181,7 @@
 	)
 	(wire
 		(pts
-			(xy 213.36 91.44) (xy 218.44 91.44)
+			(xy 215.9 91.44) (xy 220.98 91.44)
 		)
 		(stroke
 			(width 0)
@@ -1341,7 +1221,17 @@
 	)
 	(wire
 		(pts
-			(xy 217.17 93.98) (xy 217.17 96.52)
+			(xy 186.69 82.55) (xy 191.77 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "34f394ed-6024-48fd-bf20-3468433edc0b")
+	)
+	(wire
+		(pts
+			(xy 219.71 93.98) (xy 219.71 96.52)
 		)
 		(stroke
 			(width 0)
@@ -1351,7 +1241,7 @@
 	)
 	(wire
 		(pts
-			(xy 213.36 85.09) (xy 213.36 91.44)
+			(xy 215.9 85.09) (xy 215.9 91.44)
 		)
 		(stroke
 			(width 0)
@@ -1361,7 +1251,7 @@
 	)
 	(wire
 		(pts
-			(xy 189.23 74.93) (xy 189.23 82.55)
+			(xy 191.77 74.93) (xy 191.77 82.55)
 		)
 		(stroke
 			(width 0)
@@ -1391,7 +1281,7 @@
 	)
 	(wire
 		(pts
-			(xy 228.6 88.9) (xy 228.6 91.44)
+			(xy 231.14 88.9) (xy 231.14 91.44)
 		)
 		(stroke
 			(width 0)
@@ -1411,7 +1301,7 @@
 	)
 	(wire
 		(pts
-			(xy 199.39 74.93) (xy 189.23 74.93)
+			(xy 201.93 74.93) (xy 191.77 74.93)
 		)
 		(stroke
 			(width 0)
@@ -1421,7 +1311,7 @@
 	)
 	(wire
 		(pts
-			(xy 198.12 82.55) (xy 205.74 82.55)
+			(xy 200.66 82.55) (xy 208.28 82.55)
 		)
 		(stroke
 			(width 0)
@@ -1491,7 +1381,7 @@
 	)
 	(wire
 		(pts
-			(xy 228.6 91.44) (xy 223.52 91.44)
+			(xy 231.14 91.44) (xy 226.06 91.44)
 		)
 		(stroke
 			(width 0)
@@ -1501,7 +1391,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 99.06) (xy 173.99 99.06)
+			(xy 176.53 99.06) (xy 173.99 99.06)
 		)
 		(stroke
 			(width 0)
@@ -1511,7 +1401,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 91.44) (xy 173.99 91.44)
+			(xy 176.53 91.44) (xy 173.99 91.44)
 		)
 		(stroke
 			(width 0)
@@ -1551,7 +1441,7 @@
 	)
 	(wire
 		(pts
-			(xy 217.17 93.98) (xy 237.49 93.98)
+			(xy 219.71 93.98) (xy 240.03 93.98)
 		)
 		(stroke
 			(width 0)
@@ -1571,16 +1461,6 @@
 	)
 	(wire
 		(pts
-			(xy 186.69 82.55) (xy 189.23 82.55)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "805b5c50-9f74-4f81-a36b-e783ee965972")
-	)
-	(wire
-		(pts
 			(xy 114.3 93.98) (xy 125.73 93.98)
 		)
 		(stroke
@@ -1591,7 +1471,7 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 93.98) (xy 203.2 93.98)
+			(xy 212.09 93.98) (xy 207.01 93.98)
 		)
 		(stroke
 			(width 0)
@@ -1651,7 +1531,7 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 93.98) (xy 217.17 93.98)
+			(xy 212.09 93.98) (xy 219.71 93.98)
 		)
 		(stroke
 			(width 0)
@@ -1661,7 +1541,7 @@
 	)
 	(wire
 		(pts
-			(xy 217.17 96.52) (xy 215.9 96.52)
+			(xy 219.71 96.52) (xy 218.44 96.52)
 		)
 		(stroke
 			(width 0)
@@ -1681,7 +1561,7 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 74.93) (xy 209.55 93.98)
+			(xy 212.09 74.93) (xy 212.09 93.98)
 		)
 		(stroke
 			(width 0)
@@ -1761,7 +1641,7 @@
 	)
 	(wire
 		(pts
-			(xy 205.74 99.06) (xy 205.74 102.87)
+			(xy 208.28 99.06) (xy 208.28 102.87)
 		)
 		(stroke
 			(width 0)
@@ -1841,7 +1721,7 @@
 	)
 	(wire
 		(pts
-			(xy 203.2 96.52) (xy 210.82 96.52)
+			(xy 207.01 96.52) (xy 213.36 96.52)
 		)
 		(stroke
 			(width 0)
@@ -1851,7 +1731,7 @@
 	)
 	(wire
 		(pts
-			(xy 170.18 96.52) (xy 175.26 96.52)
+			(xy 170.18 96.52) (xy 176.53 96.52)
 		)
 		(stroke
 			(width 0)
@@ -1861,7 +1741,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 93.98) (xy 167.64 93.98)
+			(xy 176.53 93.98) (xy 167.64 93.98)
 		)
 		(stroke
 			(width 0)
@@ -1941,7 +1821,7 @@
 	)
 	(wire
 		(pts
-			(xy 204.47 74.93) (xy 209.55 74.93)
+			(xy 207.01 74.93) (xy 212.09 74.93)
 		)
 		(stroke
 			(width 0)
@@ -1981,7 +1861,7 @@
 	)
 	(wire
 		(pts
-			(xy 203.2 91.44) (xy 213.36 91.44)
+			(xy 207.01 91.44) (xy 215.9 91.44)
 		)
 		(stroke
 			(width 0)
@@ -1991,7 +1871,7 @@
 	)
 	(wire
 		(pts
-			(xy 205.74 82.55) (xy 205.74 99.06)
+			(xy 208.28 82.55) (xy 208.28 99.06)
 		)
 		(stroke
 			(width 0)
@@ -2031,7 +1911,7 @@
 	)
 	(wire
 		(pts
-			(xy 205.74 107.95) (xy 205.74 110.49)
+			(xy 208.28 107.95) (xy 208.28 110.49)
 		)
 		(stroke
 			(width 0)
@@ -2071,7 +1951,57 @@
 		)
 		(uuid e9d0f252-1c7d-4367-8817-4d74b69a29c4)
 	)
-	(text "Filtro Antialiasing"
+	(text "IF THE BOARD IS USE WITH AN ESP32 A LEVEL SHIFTER \nFOR THE I2C COMMUNICATION IS NEDDED.\n\nPULL UPS RESISTOR OF THE MAX5217 ARE CONNECTED TO 5V\nBECAUSE MAX5217 IS POWERED WITH 5V AND A HIGH LEVEL\nIS 0.7*VCC ~ 3.4 V SO 3.3V LOGIC CAN BE TRICKY AS IT\nMAY BE NOT ENOUGH.\nMAX 5217 NEEDS TO BE POWERED WITH 5V IN ORDER TO BE\n\nYOU MAY CONSIDERED ADDING A LEVEL SHIFTER TO THIS DESIGN OR USING AN EXTERNAL ONE.\nABLE TO GENERATE SIGNAL FROM 0 TO 5V AT THE OUTPUT."
+		(exclude_from_sim no)
+		(at 87.884 133.604 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(color 255 6 0 1)
+			)
+		)
+		(uuid "0b8e49ef-6345-4b1d-9bfb-b0e18c781baa")
+	)
+	(text "REPLACED FOR OPA2320\n"
+		(exclude_from_sim no)
+		(at 197.866 139.446 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+			)
+		)
+		(uuid "3ce2e81d-4769-4818-b0f9-dae366b2717a")
+	)
+	(text "MAX4477ASA+ IS NOT TRULY RAIL TO RAIL\nIT GOES TO VSS BUT TRIMS AT VDD - 1.6V\nNEEDS REPLACEMENT TO ACHIEVE TRUE RANGE FROM -2.5V TO 2.5V\nOPA2320 IS A GOOD REPLACEMENT\n\n"
+		(exclude_from_sim no)
+		(at 198.12 133.858 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(color 255 0 6 1)
+			)
+		)
+		(uuid "897eaf5f-69b1-490b-9add-f667e23eb6b4")
+	)
+	(text "This is a 4th Order Low Pass Unity Gain Sallen Key Filter\nused as an Antialiasing Filter to soften the adc output."
+		(exclude_from_sim no)
+		(at 199.39 124.46 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+			)
+		)
+		(uuid "8fea705d-7a3e-46f0-9141-4dd1d69a7f44")
+	)
+	(text "Antialiasing Filter\n"
 		(exclude_from_sim no)
 		(at 197.104 62.992 0)
 		(effects
@@ -2099,7 +2029,7 @@
 	)
 	(hierarchical_label "DAC_OUT"
 		(shape output)
-		(at 237.49 93.98 0)
+		(at 240.03 93.98 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2290,7 +2220,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 220.98 91.44 270)
+		(at 223.52 91.44 270)
 		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
@@ -2299,7 +2229,7 @@
 		(dnp no)
 		(uuid "15f6a32e-a234-4eb9-9254-74dba12bdace")
 		(property "Reference" "C14"
-			(at 222.2438 88.9 0)
+			(at 224.7838 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2308,7 +2238,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 219.7038 88.9 0)
+			(at 222.2438 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2317,7 +2247,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
-			(at 220.98 91.44 0)
+			(at 223.52 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2326,7 +2256,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 220.98 91.44 0)
+			(at 223.52 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2335,7 +2265,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 220.98 91.44 0)
+			(at 223.52 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2494,6 +2424,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+5V")
+		(at 99.06 115.57 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "1ae293c8-3f2d-4f23-814a-d6700a98bd3f")
+		(property "Reference" "#PWR040"
+			(at 95.25 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+5V"
+			(at 102.87 115.5699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 99.06 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 99.06 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
+			(at 99.06 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "2a62a1e4-5b9c-4a52-a20d-83ae87b8935d")
+		)
+		(instances
+			(project ""
+				(path "/3273751a-bb69-4014-b380-866ff743e010/82e9cf1f-f335-4dd7-a310-2b4d96e27e89"
+					(reference "#PWR040")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C_Small")
 		(at 170.18 100.33 0)
 		(unit 1)
@@ -2564,7 +2561,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 228.6 88.9 180)
+		(at 231.14 88.9 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2572,7 +2569,7 @@
 		(dnp no)
 		(uuid "27a463d6-368e-4183-92b0-7dac6aa6744b")
 		(property "Reference" "#PWR013"
-			(at 228.6 82.55 0)
+			(at 231.14 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2581,7 +2578,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 228.6 83.82 0)
+			(at 231.14 83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2589,7 +2586,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 228.6 88.9 0)
+			(at 231.14 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2598,7 +2595,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 228.6 88.9 0)
+			(at 231.14 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2607,7 +2604,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 228.6 88.9 0)
+			(at 231.14 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2764,7 +2761,7 @@
 	)
 	(symbol
 		(lib_id "Device:R_Small")
-		(at 213.36 96.52 270)
+		(at 215.9 96.52 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2772,7 +2769,7 @@
 		(dnp no)
 		(uuid "2914d0d5-59d2-4347-b2a2-7f9cda1e0bec")
 		(property "Reference" "R14"
-			(at 213.868 99.314 90)
+			(at 216.408 99.314 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2780,7 +2777,7 @@
 			)
 		)
 		(property "Value" "1k"
-			(at 213.614 101.092 90)
+			(at 216.154 101.092 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2788,7 +2785,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
-			(at 213.36 96.52 0)
+			(at 215.9 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2797,7 +2794,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 213.36 96.52 0)
+			(at 215.9 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2806,7 +2803,7 @@
 			)
 		)
 		(property "Description" "Resistor, small symbol"
-			(at 213.36 96.52 0)
+			(at 215.9 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3172,7 +3169,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 213.36 85.09 0)
+		(at 215.9 85.09 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3181,7 +3178,7 @@
 		(fields_autoplaced yes)
 		(uuid "5ac3145f-c346-431d-ba02-f8a407bebf9a")
 		(property "Reference" "#PWR043"
-			(at 213.36 88.9 0)
+			(at 215.9 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3190,7 +3187,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 213.36 80.01 0)
+			(at 215.9 80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3198,7 +3195,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 213.36 85.09 0)
+			(at 215.9 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3207,7 +3204,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 213.36 85.09 0)
+			(at 215.9 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3216,7 +3213,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 213.36 85.09 0)
+			(at 215.9 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3344,7 +3341,7 @@
 	)
 	(symbol
 		(lib_id "Device:R_Small")
-		(at 195.58 82.55 270)
+		(at 198.12 82.55 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3353,7 +3350,7 @@
 		(fields_autoplaced yes)
 		(uuid "8340a305-639c-4f5a-9c72-6d27667bf23d")
 		(property "Reference" "R13"
-			(at 195.58 77.47 90)
+			(at 198.12 77.47 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3361,7 +3358,7 @@
 			)
 		)
 		(property "Value" "25.5k"
-			(at 195.58 80.01 90)
+			(at 198.12 80.01 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3369,7 +3366,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
-			(at 195.58 82.55 0)
+			(at 198.12 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3378,7 +3375,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 195.58 82.55 0)
+			(at 198.12 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3387,7 +3384,7 @@
 			)
 		)
 		(property "Description" "Resistor, small symbol"
-			(at 195.58 82.55 0)
+			(at 198.12 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3412,7 +3409,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 201.93 74.93 90)
+		(at 204.47 74.93 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3421,7 +3418,7 @@
 		(fields_autoplaced yes)
 		(uuid "9403fe0a-71e6-42a6-a326-76e072bc468b")
 		(property "Reference" "C18"
-			(at 201.9363 68.58 90)
+			(at 204.4763 68.58 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3429,7 +3426,7 @@
 			)
 		)
 		(property "Value" "180p"
-			(at 201.9363 71.12 90)
+			(at 204.4763 71.12 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3437,7 +3434,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
-			(at 201.93 74.93 0)
+			(at 204.47 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3446,7 +3443,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 201.93 74.93 0)
+			(at 204.47 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3455,7 +3452,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 201.93 74.93 0)
+			(at 204.47 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3615,73 +3612,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+3V3")
-		(at 99.06 115.57 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "bd0f50a2-fdbc-4fb0-8d37-8879da573963")
-		(property "Reference" "#PWR031"
-			(at 95.25 115.57 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3V3"
-			(at 102.87 115.5699 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 99.06 115.57 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 99.06 115.57 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 99.06 115.57 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "4c952837-fb34-4b30-ba7b-f692f5abffee")
-		)
-		(instances
-			(project ""
-				(path "/3273751a-bb69-4014-b380-866ff743e010/82e9cf1f-f335-4dd7-a310-2b4d96e27e89"
-					(reference "#PWR031")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R_Small")
 		(at 184.15 82.55 270)
 		(unit 1)
@@ -3744,111 +3674,6 @@
 			(project ""
 				(path "/3273751a-bb69-4014-b380-866ff743e010/82e9cf1f-f335-4dd7-a310-2b4d96e27e89"
 					(reference "R12")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "potentiostat:MAX4477ASA+")
-		(at 175.26 91.44 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "c0fe9245-5b59-4676-9d5c-bdb2cd5e2e5f")
-		(property "Reference" "IC5"
-			(at 189.992 103.886 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "MAX4477ASA+"
-			(at 189.992 106.426 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "potentiostat:SOIC127P600X175_MAX4477"
-			(at 199.39 186.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://datasheets.maximintegrated.com/en/ds/MAX4475-MAX4489.pdf"
-			(at 199.39 286.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Description" "OP Amp Dual GP R-R O/P 5.5V"
-			(at 175.26 91.44 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MFR.Part #" "MAX4477ASA+"
-			(at 175.26 91.44 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer" "Analog Devices"
-			(at 175.26 91.44 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "8"
-			(uuid "6618c282-45a2-4cb0-95a7-42cfdafe51aa")
-		)
-		(pin "7"
-			(uuid "81fbd50b-f78b-4644-ab92-7cef85fb81e1")
-		)
-		(pin "4"
-			(uuid "2349bb46-71f7-4037-909b-e5963da0bf56")
-		)
-		(pin "5"
-			(uuid "d4bb60ea-2877-40b2-92f4-c64c8041fd9c")
-		)
-		(pin "2"
-			(uuid "9e134091-7f57-4935-af22-e553892bf3f2")
-		)
-		(pin "6"
-			(uuid "3c480669-147f-4a32-9216-e018cf8690e1")
-		)
-		(pin "1"
-			(uuid "92ffa120-6965-43d7-908e-8d642cca7fa3")
-		)
-		(pin "3"
-			(uuid "e524f404-e989-4e3a-b535-6cd4cbddafe2")
-		)
-		(instances
-			(project ""
-				(path "/3273751a-bb69-4014-b380-866ff743e010/82e9cf1f-f335-4dd7-a310-2b4d96e27e89"
-					(reference "IC5")
 					(unit 1)
 				)
 			)
@@ -3925,7 +3750,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 205.74 105.41 0)
+		(at 208.28 105.41 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3934,7 +3759,7 @@
 		(fields_autoplaced yes)
 		(uuid "d02878cc-66ca-4dda-93bf-9a96e1f58b77")
 		(property "Reference" "C15"
-			(at 208.28 104.1462 0)
+			(at 210.82 104.1462 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3943,7 +3768,7 @@
 			)
 		)
 		(property "Value" "68p"
-			(at 208.28 106.6862 0)
+			(at 210.82 106.6862 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3952,7 +3777,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
-			(at 205.74 105.41 0)
+			(at 208.28 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3961,7 +3786,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 205.74 105.41 0)
+			(at 208.28 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3970,7 +3795,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 205.74 105.41 0)
+			(at 208.28 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3995,7 +3820,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 205.74 110.49 0)
+		(at 208.28 110.49 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4004,7 +3829,7 @@
 		(fields_autoplaced yes)
 		(uuid "d752ce9e-d938-4c0f-b274-1af41efbfa4f")
 		(property "Reference" "#PWR015"
-			(at 205.74 116.84 0)
+			(at 208.28 116.84 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4013,7 +3838,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 205.74 115.57 0)
+			(at 208.28 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4021,7 +3846,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 205.74 110.49 0)
+			(at 208.28 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4030,7 +3855,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 205.74 110.49 0)
+			(at 208.28 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4039,7 +3864,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 205.74 110.49 0)
+			(at 208.28 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4054,6 +3879,143 @@
 			(project ""
 				(path "/3273751a-bb69-4014-b380-866ff743e010/82e9cf1f-f335-4dd7-a310-2b4d96e27e89"
 					(reference "#PWR015")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "potentiostat:OPA2320AIDR")
+		(at 176.53 91.44 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e44969fc-a083-46b3-959a-3241c1e07c36")
+		(property "Reference" "IC5"
+			(at 191.516 103.632 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "OPA2320AIDR"
+			(at 191.516 106.172 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "SOIC127P600X175-8N"
+			(at 203.2 186.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/gpn/opa2320"
+			(at 203.2 286.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Description" "Precision, Zero-Crossover, 20MHz, 0.9pA Ib, RRIO, CMOS Operational Amplifier"
+			(at 179.324 79.502 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Height" "1.75"
+			(at 203.2 486.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Mouser Part Number" "595-OPA2320AIDR"
+			(at 203.2 586.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Texas-Instruments/OPA2320AIDR?qs=tTIQDc3uNmVIif8mgpifPg%3D%3D"
+			(at 203.2 686.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer_Name" "Texas Instruments"
+			(at 203.2 786.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer_Part_Number" "OPA2320AIDR"
+			(at 203.2 886.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(pin "8"
+			(uuid "fff03f61-37c4-4e94-ba2f-7304a5167200")
+		)
+		(pin "7"
+			(uuid "8c6cf358-7e3c-43ac-b2b4-5822a838db17")
+		)
+		(pin "6"
+			(uuid "106b09ba-44c6-43ec-b984-edadb8fda7f1")
+		)
+		(pin "3"
+			(uuid "f72b433d-70e0-435a-932b-4b499a031d90")
+		)
+		(pin "4"
+			(uuid "33c5b554-5921-4d46-b9c4-92c0bf75ac31")
+		)
+		(pin "1"
+			(uuid "e105eb1c-8817-4490-a3e7-791d7a23805f")
+		)
+		(pin "2"
+			(uuid "540ea1b8-c33a-4abe-a19c-aad615706261")
+		)
+		(pin "5"
+			(uuid "6cb25d69-211c-4128-8910-956b1cb5cf41")
+		)
+		(instances
+			(project ""
+				(path "/3273751a-bb69-4014-b380-866ff743e010/82e9cf1f-f335-4dd7-a310-2b4d96e27e89"
+					(reference "IC5")
 					(unit 1)
 				)
 			)

@@ -1,4 +1,4 @@
-24435199457254524
+24436965460450916
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -98629,6 +98629,13 @@ MAX4737EUD+
 0
 14
 14
+potentiostat
+SOIC127P600X175-8N
++soic d
+Integrated Circuit
+0
+8
+8
 potentiostat
 SOIC127P600X175_LMP7702
 D0008A
