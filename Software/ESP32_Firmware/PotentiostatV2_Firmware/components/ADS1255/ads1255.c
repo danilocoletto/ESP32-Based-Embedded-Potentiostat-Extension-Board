@@ -59,7 +59,7 @@ spi_device_handle_t init_spi_bus(void)
     esp_err_t ret;
     spi_device_handle_t spi_handle;
 
-    // 1. Configuración del Bus (Pines físicos)
+    // Bus configuration (Physical pinout)
     spi_bus_config_t buscfg = {
         .miso_io_num = ADS1255_DOUT_MISO,
         .mosi_io_num = ADS1255_DIN_MOSI,
@@ -69,13 +69,13 @@ spi_device_handle_t init_spi_bus(void)
         .max_transfer_sz = 0, // 0 = default (4092 bytes)
     };
 
-    // 2. Configuración del Dispositivo (Cómo habla el chip)
+    // Device configuration
     spi_device_interface_config_t devcfg = {
-        .clock_speed_hz = CLOCK_SPEED_1MHZ,   // 1 MHz (Seguro para empezar. Max ADS1255 ~2MHz con CLK de 7.68M)
-        .mode = 1,                   // SPI Mode 1 (CPOL=0, CPHA=1) es común para ADS125x. ¡VERIFICA DATASHEET!
-        .spics_io_num = -1,          // Controlamos CS manualmente en la librería
+        .clock_speed_hz = CLOCK_SPEED_1MHZ,   // 1 MHz (Max ADS1255 ~1.92MHz with a 7.68M CLK)
+        .mode = 1,                   // SPI Mode 1 (CPOL=0, CPHA=1). According to datasheet for ADS125x
+        .spics_io_num = -1,          // CS is mannually controlled by our library
         .queue_size = 1,
-        .flags = 0,                  // SPI_DEVICE_HALFDUPLEX si fuera necesario, pero Full Duplex está bien
+        .flags = 0,                  // FULL DUPLEX COMMUNICATION
         .pre_cb = NULL,
         .post_cb = NULL,
     };
@@ -97,12 +97,11 @@ spi_device_handle_t init_spi_bus(void)
  */
 void init_adc_clock(uint32_t freq)
 {
-  // Configurar Clock Generation
+  // Configure clock generation
   ledc_timer_config_t ledc_timer = {
       .speed_mode = LEDC_HIGH_SPEED_MODE,
       .timer_num = LEDC_TIMER_0,
       .duty_resolution = LEDC_TIMER_1_BIT,
-      //.freq_hz = 7680000,
       .freq_hz = freq,
       .clk_cfg = LEDC_AUTO_CLK};
   ledc_timer_config(&ledc_timer);
@@ -151,9 +150,8 @@ uint8_t ADS125X_Init(ADS125X_t *ads, spi_device_handle_t hspi, uint8_t drate, ui
 #endif
 
   ADS125X_Config_Pins();
-  //ADS125X_CS(ads, ADS125X_ON);
   ADS125X_CMD_Send(ads, ADS125X_CMD_RESET);
-  // Esto congela la CPU por 5ms.
+  // This freeze the CPU for 5ms.
   esp_rom_delay_us(5000);
   ADS125X_CMD_Send(ads, ADS125X_CMD_SDATAC);
 
@@ -183,7 +181,6 @@ uint8_t ADS125X_Init(ADS125X_t *ads, spi_device_handle_t hspi, uint8_t drate, ui
 #endif
 
   ADS125X_CMD_Send(ads, ADS125X_CMD_SELFCAL);
-  //ADS125X_CS(ads, ADS125X_OFF);
   ADS125X_DRDY_Wait(ads); // wait ADS1256 to settle after self calibration
 
   return 0;
@@ -201,20 +198,19 @@ uint8_t ADS125X_Init(ADS125X_t *ads, spi_device_handle_t hspi, uint8_t drate, ui
 void ADS125X_ADC_Code2Volt (ADS125X_t *ads, int32_t *pCode, float *pVolt, uint16_t size)
 {
   uint16_t i;
-  // Pre-calculamos el factor de escala para no hacer divisiones en cada vuelta del bucle (más rápido)
+  // Pre-calculate the scale factor to not do division in each iteration (faster)
   // Factor = (2 * Vref) / (PGA * MaxCode)
   float scale_factor = (2.0f * ads->vref) / ( (float)ads->pga * 8388607.0f );
 
-  // CORRECCIÓN: Usamos uint16_t para 'i' para coincidir con 'size'
   for(i = 0; i < size; i++)
   {
-    // Extensión de signo de 24-bit a 32-bit
+    // Sign extension from 24-bit to 32-bit
     if(pCode[i] & 0x800000)
     {
-       pCode[i] |= 0xFF000000;  // Convierte 0x00FFFFFF en 0xFFFFFFFF (-1)
+       pCode[i] |= 0xFF000000;  // Converts 0x00FFFFFF into 0xFFFFFFFF (-1)
     }
 
-    // Conversión a Voltios usando multiplicación (más rápido que dividir)
+    // Conversion to volts using a multiplication (faster than division)
     pVolt[i] = (float)pCode[i] * scale_factor;
   }
 }
@@ -225,9 +221,6 @@ void ADS125X_ADC_Code2Volt (ADS125X_t *ads, int32_t *pCode, float *pVolt, uint16
   * @return <float> voltage value on analog input
   * @see    Datasheet Fig. 30 RDATA Command Sequence
   */
-		
-/* LIBRARY MACHEN SO: */
-/* ALI NIX SCHULD: */
 float ADS125X_ADC_ReadVolt (ADS125X_t *ads)
 {
   uint8_t cmd = ADS125X_CMD_RDATA;
@@ -235,14 +228,14 @@ float ADS125X_ADC_ReadVolt (ADS125X_t *ads)
   uint8_t spiTxDummy[3] = {0xFF, 0xFF, 0xFF};
   esp_err_t ret;
 
-  //Transacción de ENVÍO (Comando)
+  //Send transaction (Command)
   spi_transaction_t t_cmd;
   memset(&t_cmd, 0, sizeof(t_cmd));
   t_cmd.length = 8;             // 8 bits
   t_cmd.tx_buffer = &cmd;
   t_cmd.rx_buffer = NULL;       
     
-  //Transacción de RECEPCIÓN (Datos)
+  //Receive transaction (Data)
   spi_transaction_t t_read;
   memset(&t_read, 0, sizeof(t_read));
   t_read.length = 24;           // 24 bits
@@ -250,36 +243,36 @@ float ADS125X_ADC_ReadVolt (ADS125X_t *ads)
   t_read.tx_buffer = spiTxDummy;      
   t_read.rx_buffer = spiRx;
 	
-	// --- INICIO DE COMUNICACIÓN ---
+	// --- Communication Init ---
   ADS125X_CS(ads, ADS125X_ON); // CS Low (Select)
 
-  // Enviar comando RDATA. Usamos 'spi_device_transmit'
+  // Send command RDTA. We use 'spi_device_trasnmit'
   ret = spi_device_transmit(ads->hspix, &t_cmd);
   if (ret != ESP_OK) 
   {
     ADS125X_CS(ads, ADS125X_OFF);
-    return 0.0f; // Manejo básico de error
+    return 0.0f; 
   }
 
-  // Delay necesario (t6 en datasheet ~7us). Figura 30. Usamos 7us para mayor seguridad
+  // Delay (t6 in datasheet ~7us). Figure 30.
   esp_rom_delay_us(7);
 
-  // Leer los 3 bytes
+  // Read 3 bytes
   ret = spi_device_transmit(ads->hspix, &t_read);
 
   ADS125X_CS(ads, ADS125X_OFF); // CS High (Deselect)
-  // --- FIN DE COMUNICACIÓN ---
+  // --- COMMUNICATION END ---
 
 #ifdef DEBUG_ADS1255
     printf("RDATA: %#.2x%.2x%.2x\n", spiRx[0], spiRx[1], spiRx[2]);
 #endif
 
-  // --- CONVERSIÓN Y MATEMÁTICA ---
+  // --- CONVERSION AND MATH ---
     
-  // Construir int32 (Big Endian)
+  // Build the int32 (Big Endian)
   int32_t adsCode = (spiRx[0] << 16) | (spiRx[1] << 8) | (spiRx[2]);
 
-  // Extensión de signo (Bit 23 es el signo)
+  // Sign extension (Bit 23 is the sign)
   if(adsCode & 0x800000) 
   {
     adsCode |= 0xFF000000;
@@ -510,12 +503,6 @@ uint8_t ADS125X_DRDY_Wait(ADS125X_t *ads) {
             return 1; // Error
         }
         timeout--;
-        
-        // Opcional: ceder tiempo si no te importa perder 1ms de precisión
-        // vTaskDelay(1); 
-        
-        // Si necesitas precisión de microsegundos, no uses vTaskDelay,
-        // pero asegúrate de que el timeout funcione.
     }
     return 0; // Éxito
 }

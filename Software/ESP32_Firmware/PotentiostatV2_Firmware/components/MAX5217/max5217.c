@@ -16,8 +16,7 @@ MIT License
 
 static const char *TAG = "DAC_SETUP";
 
-// Variable global o estática para mantener el handle del bus
-// (Solo necesitas inicializar el bus una vez, aunque tengas varios dispositivos)
+// Global static variable to keep the bus handle
 static i2c_master_bus_handle_t bus_handle = NULL;
 
 /**
@@ -29,15 +28,16 @@ i2c_master_dev_handle_t setup_DAC(uint8_t devID)
 {
     config_pin(DAC_NAUX, GPIO_MODE_OUTPUT, GPIO_PULLUP_ENABLE, GPIO_PULLDOWN_DISABLE, GPIO_INTR_DISABLE);
     gpio_set_level(DAC_NAUX, HIGH);    // Lo deshabilito
-    // Inicializar el BUS I2C (Solo si no se ha hecho antes)
+
+    // Initialize the I2C BUS (just if it hadn't been done before)
     if (bus_handle == NULL) {
         i2c_master_bus_config_t i2c_mst_config = {
             .clk_source = I2C_CLK_SRC_DEFAULT,
-            .i2c_port = -1,                                     // Deja que el driver seleccione el puerto automáticamente
+            .i2c_port = -1,                                     // Let the driver select the port automatically
             .scl_io_num = I2C_MASTER_SCL,
             .sda_io_num = I2C_MASTER_SDA,
             .glitch_ignore_cnt = 7,
-            .flags.enable_internal_pullup = true,              // Deshabilitar pullups internos
+            .flags.enable_internal_pullup = true,              // Disable internal pullups
         };
 
         esp_err_t ret = i2c_new_master_bus(&i2c_mst_config, &bus_handle);
@@ -47,7 +47,7 @@ i2c_master_dev_handle_t setup_DAC(uint8_t devID)
         }
     }
 
-    // Configurar el DISPOSITIVO (El DAC específico)
+    // Configurate the device ( DAC - MAX5217)
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = devID,
@@ -94,7 +94,7 @@ void write_DAC(i2c_master_dev_handle_t dac_handle, double mvolt_value)
     int msg = 0;
     
 
-    // Lógica Original Preservada (Conversión)
+    // Logic to calculate the DAC value depending on the desire voltage in milivolts
     valor_DAC = (unsigned int)(((mvolt_value + (double) DAC_REF_2_5V) * MAX_VALUE_DAC) / DAC_REF_5V);
     
 
@@ -120,7 +120,6 @@ void write_DAC(i2c_master_dev_handle_t dac_handle, double mvolt_value)
     // %02X means: Print in Hex (X), minimum 2 digits (2), pad with zeros (0)
     //printf("My Byte: 0x%02X\n", write_buffer[2]);
 
-    // Enviamos los 3 bytes de un solo golpe
     //ESP_ERROR_CHECK(i2c_master_transmit(dac_handle, write_buffer, sizeof(write_buffer), -1));
 
     // --- NEW CODE (Prevents Reset) ---
