@@ -40,15 +40,10 @@ The hardware is designed to support nanoampere-level current measurements with a
 The repository is organized as follows:
 
 ├── Hardware/ # KiCad project files (Schematics, PCB Layout, BOM)
-
 ├── Firmware/ # ESP-IDF C/C++ source code
-
 │ ├── main/ # Core logic (FreeRTOS tasks, State Machine)
-
 │ ├── components/ # Drivers for DAC, ADC, and Potentiostat control
-
 ├── Docs/ # Datasheets and design notes
-
 └── README.md # This file
 
 ## 🔌 Pinout & Interface
@@ -79,7 +74,7 @@ The repository is organized as follows:
 | | **RE FB EN** | **33** | Reference Feedback Enable |
 | | **WE EN** | **13** | Working Electrode Enable |
 | | **CE EN** | **15** | Counter Electrode Enable |
-| **Misc** | **LED** | **2** | Onboard Status LED (Green) |
+| **Misc** | **GREEN LED** | **2** | Onboard Status LED (Green) |
 
 ## 📚 References & Context
 
