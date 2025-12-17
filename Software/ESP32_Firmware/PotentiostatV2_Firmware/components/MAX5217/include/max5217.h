@@ -20,9 +20,9 @@
 
 
 // Definiciones de pines (Ajústalo a tu placa)
-#define DAC_NAUX                    GPIO_NUM_32
-#define I2C_MASTER_SCL              GPIO_NUM_22
-#define I2C_MASTER_SDA              GPIO_NUM_21
+#define MAX_5217_NAUX             GPIO_NUM_32
+#define MAX_5217_SCL              GPIO_NUM_22
+#define MAX_5217_SDA              GPIO_NUM_21
 #define I2C_MASTER_FREQ_HZ          10000    // 100kHz o 400kHz
 
 // DATOS DEL DAC

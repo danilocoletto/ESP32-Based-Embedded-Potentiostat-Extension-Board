@@ -39,26 +39,47 @@ The hardware is designed to support nanoampere-level current measurements with a
 
 The repository is organized as follows:
 
-├── Hardware/ # KiCad project files (Schematics, PCB Layout, BOM) 
-├── Firmware/ # ESP-IDF C/C++ source code 
-│ ├── main/ # Core logic (FreeRTOS tasks, State Machine) 
-│ ├── components/ # Drivers for DAC, ADC, and Potentiostat control 
-├── Docs/ # Datasheets and design notes 
+├── Hardware/ # KiCad project files (Schematics, PCB Layout, BOM)
+
+├── Firmware/ # ESP-IDF C/C++ source code
+
+│ ├── main/ # Core logic (FreeRTOS tasks, State Machine)
+
+│ ├── components/ # Drivers for DAC, ADC, and Potentiostat control
+
+├── Docs/ # Datasheets and design notes
+
 └── README.md # This file
 
 ## 🔌 Pinout & Interface
 
-*> **Note:** As the PCB layout is being finalized, please refer to the schematic in the `Hardware` folder for the most up-to-date netlist.*
+*> **Note:** As the PCB layout is being finalized, please refer to the schematic in the `Hardware` folder for the most up-to-date netlist. Below is the current configuration for the ESP32 implementation.*
 
-**Main Connections:**
+### ⚡ Analog Front-End Connections
 * **WE (Working Electrode):** Input for current measurement.
 * **RE (Reference Electrode):** Feedback input (Shielded).
 * **CE (Counter Electrode):** Current injection output.
 
-**ESP32 Interface (Typical):**
-* **I2C/SPI:** Communication with DAC/ADC.
-* **UART:** Debugging and serial data stream.
-* **Power:** 5V/3.3V input via USB or external battery connector.
+### 🧩 ESP32 GPIO Mapping
+
+| Component | Function | ESP32 GPIO | Description |
+| :--- | :--- | :--- | :--- |
+| **ADS1255 (ADC)** | **MISO** (DOUT) | **19** | SPI Data Input |
+| | **MOSI** (DIN) | **23** | SPI Data Output |
+| | **SCLK** | **18** | SPI Clock |
+| | **CS** | **5** | Chip Select |
+| | **DRDY** | **4** | Data Ready Interrupt |
+| **MAX5217 (DAC)** | **SDA** | **21** | I2C Data |
+| | **SCL** | **22** | I2C Clock |
+| | **NAUX** | **32** | Aux/Load Control |
+| **MAX4617 (Mux)** | **SEL A** | **27** | Range/Gain Select Bit A |
+| | **SEL B** | **26** | Range/Gain Select Bit B |
+| | **SEL C** | **25** | Range/Gain Select Bit C |
+| **MAX4737 (Switches)**| **CR SHORT EN**| **14** | Counter-Reference Short Enable |
+| | **RE FB EN** | **33** | Reference Feedback Enable |
+| | **WE EN** | **13** | Working Electrode Enable |
+| | **CE EN** | **15** | Counter Electrode Enable |
+| **Misc** | **LED** | **2** | Onboard Status LED (Green) |
 
 ## 📚 References & Context
 

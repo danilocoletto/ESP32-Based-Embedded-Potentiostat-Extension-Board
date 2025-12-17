@@ -34,8 +34,8 @@ i2c_master_dev_handle_t setup_DAC(uint8_t devID)
         i2c_master_bus_config_t i2c_mst_config = {
             .clk_source = I2C_CLK_SRC_DEFAULT,
             .i2c_port = -1,                                     // Let the driver select the port automatically
-            .scl_io_num = I2C_MASTER_SCL,
-            .sda_io_num = I2C_MASTER_SDA,
+            .scl_io_num = MAX_5217_SCL,
+            .sda_io_num = MAX_5217_SDA,
             .glitch_ignore_cnt = 7,
             .flags.enable_internal_pullup = true,              // Disable internal pullups
         };

@@ -5312,7 +5312,7 @@
 		)
 		(uuid "2a1662b9-0cec-4244-b717-124d69afaf14")
 	)
-	(label "SEL_BIT0"
+	(label "SEL_BIT0_A"
 		(at 245.11 87.63 0)
 		(fields_autoplaced yes)
 		(effects
@@ -5642,7 +5642,7 @@
 		)
 		(uuid "b2afa99e-2eb7-472a-8bbd-d446de13f405")
 	)
-	(label "SEL_BIT1"
+	(label "SEL_BIT1_B"
 		(at 30.48 30.48 180)
 		(fields_autoplaced yes)
 		(effects
@@ -5653,7 +5653,7 @@
 		)
 		(uuid "bc4b088e-5782-4a9a-b34f-18db8a64443c")
 	)
-	(label "SEL_BIT1"
+	(label "SEL_BIT1_B"
 		(at 245.11 85.09 0)
 		(fields_autoplaced yes)
 		(effects
@@ -5697,7 +5697,7 @@
 		)
 		(uuid "c61cf29b-fb90-4322-b75a-a55a5d9ed57f")
 	)
-	(label "SEL_BIT2"
+	(label "SEL_BIT2_C"
 		(at 30.48 34.29 180)
 		(fields_autoplaced yes)
 		(effects
@@ -5763,7 +5763,7 @@
 		)
 		(uuid "e9bf086c-12e9-43d7-9c07-b6cf53b21e31")
 	)
-	(label "SEL_BIT0"
+	(label "SEL_BIT0_A"
 		(at 30.48 26.67 180)
 		(fields_autoplaced yes)
 		(effects
@@ -5796,7 +5796,7 @@
 		)
 		(uuid "f0d8c34a-856e-4b81-b4a2-de2d818ce8be")
 	)
-	(label "SEL_BIT2"
+	(label "SEL_BIT2_C"
 		(at 245.11 82.55 0)
 		(fields_autoplaced yes)
 		(effects
