@@ -2229,16 +2229,29 @@
 		)
 		(uuid "fc9e4a0c-3d13-4d83-8f9c-c68f577393bd")
 	)
-	(text "Revisar valores de capacitores y orden"
+	(text "OPA354 CONFIGURED AS BUFFEROR VOLTAGE FOLLOWER TO PROVIDE A \nMORE STABILIZE 2.5V REFERENCE. THIS CIRCUIT IS RECOMMENDED IN\nTHE ADS1255 DATASHEET.\n"
 		(exclude_from_sim no)
-		(at 194.31 68.072 0)
+		(at 223.266 134.366 0)
 		(effects
 			(font
 				(size 1.27 1.27)
-				(color 255 25 16 1)
+				(thickness 0.254)
+				(bold yes)
 			)
 		)
-		(uuid "6ac3ae5b-19d1-4241-a647-db35546599da")
+		(uuid "6866e13e-10de-4c62-bd39-030d1daafbd0")
+	)
+	(text "LM4040A50 NEEDS A SUPPLY HIGHER THAN 5V A\nND MINIMUN CATHODE CURRENT OF AT LEAST 45 uA \nTO BE ABLE TO DELIVER A 5V REFERENCE"
+		(exclude_from_sim no)
+		(at 121.92 27.94 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+			)
+		)
+		(uuid "9a9591ea-0790-4879-becf-a45c8f08bd26")
 	)
 	(hierarchical_label "VREF_5V"
 		(shape output)
@@ -2981,6 +2994,7 @@
 	(symbol
 		(lib_id "Device:C_Small")
 		(at 182.88 83.82 0)
+		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2988,7 +3002,7 @@
 		(dnp no)
 		(uuid "81a56260-26ad-4467-b746-946ebd3cfbe4")
 		(property "Reference" "C32"
-			(at 180.34 85.0965 0)
+			(at 180.34 82.5435 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2996,8 +3010,8 @@
 				(justify right)
 			)
 		)
-		(property "Value" "47u"
-			(at 180.34 82.5565 0)
+		(property "Value" "0.1u"
+			(at 180.34 85.0835 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3119,30 +3133,30 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 195.58 83.82 180)
+		(at 195.58 83.82 0)
+		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "95114f47-fc6e-48ad-b50f-4e8f2d2c2cbf")
 		(property "Reference" "C31"
-			(at 193.04 85.0838 0)
+			(at 193.04 82.5435 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
-		(property "Value" "0.1u"
-			(at 193.04 82.5438 0)
+		(property "Value" "1u"
+			(at 193.04 85.0835 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
@@ -3809,30 +3823,30 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 207.01 83.82 180)
+		(at 207.01 83.82 0)
+		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "ca2ac58f-b4c4-4050-878d-37417b6ec93e")
 		(property "Reference" "C30"
-			(at 204.47 85.0838 0)
+			(at 204.47 82.5435 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
-		(property "Value" "100u"
-			(at 204.47 82.5438 0)
+		(property "Value" "10u"
+			(at 204.47 85.0835 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"

@@ -2604,16 +2604,42 @@
 		)
 		(uuid "f615a142-c43e-4258-bc5c-42109949aeef")
 	)
-	(text "Comunicacion SPI\n\nSCLK = SCLK\nDIN = MOSI\nDOUT = MISO\nCS = CS\n\nVer si el Analog puede manejar SPI a través de los pines digitales"
+	(text "SPI COMMUNICATION\nPROTOCOL\n\nSCLK => SCLK\nDIN => TO MOSI\nDOUT =>TO MISO\nCS => CS"
 		(exclude_from_sim no)
-		(at 78.232 151.384 0)
+		(at 254.508 59.182 0)
 		(effects
 			(font
 				(size 1.27 1.27)
-				(color 255 0 19 1)
+				(thickness 0.254)
+				(bold yes)
 			)
 		)
 		(uuid "1103617a-2df7-45d8-a186-c63028d4d75e")
+	)
+	(text "XTAL1/CLKIN PIN CAN BE USED AS A CLK INPUT FOR ADS1255\nTHIS WAS ALREADY TESTED WITH AN ESP32 GENERATING A \n7.8MHZ CLOCK AND ADS1255 WORKS GOOD. TAKE INTO ACCOUNT\nTHIS OPTION IF YOU WISH TO AVOID THE XTAL OPTION\n"
+		(exclude_from_sim no)
+		(at 226.568 134.112 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(color 255 0 11 1)
+			)
+		)
+		(uuid "56d06b41-10f1-4ae1-bca3-86528970d3b8")
+	)
+	(text "I PERSONALLY RECOMMEND TO FOLLOW ADS1255 DATASHEET'S \nRECOMMENDATION FOR CRYSTALS. AS I HAVE EXPERIENCED TROUBLE\nTRYING TO GET A GENERIC 8 MHZ CRYSTAL TO WORKS.\nPCB LAYOUT DOENS'T SEEMS PROBLEMATIC TO MY UNDERSTANDING.\nYOU CAN ALSO CHECK THE APPLICATION REPORT SBAA104 FROM\nTEXAS INSTRUMENTS CALLED \n\"Using Ceramic Resonators with the ADS1255/6\""
+		(exclude_from_sim no)
+		(at 227.838 147.32 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+			)
+		)
+		(uuid "98ecf756-22c1-446a-a47b-204e30c76490")
 	)
 	(hierarchical_label "ADC"
 		(shape input)
