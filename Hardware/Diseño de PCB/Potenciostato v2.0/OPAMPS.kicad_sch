@@ -5238,7 +5238,7 @@
 		(uuid "ec50e029-b100-4353-8ca2-d8756a8a2cf3")
 	)
 	(hierarchical_label "CE"
-		(shape input)
+		(shape output)
 		(at 91.44 66.04 180)
 		(fields_autoplaced yes)
 		(effects

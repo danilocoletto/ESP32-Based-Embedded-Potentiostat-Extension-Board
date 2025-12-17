@@ -2071,6 +2071,30 @@
 		)
 		(uuid e9d0f252-1c7d-4367-8817-4d74b69a29c4)
 	)
+	(text "LEVEL SHIFTER IF USED WITH ESP32 NEDDED.\nWASN'T TAKEN INTO ACCOUNT IN THE MOMENT"
+		(exclude_from_sim no)
+		(at 86.36 122.174 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(color 255 6 0 1)
+			)
+		)
+		(uuid "0b8e49ef-6345-4b1d-9bfb-b0e18c781baa")
+	)
+	(text "THIS IS NOT TRULY RAIL TO RAIL\nTHIS GOES TO VSS BUT TRIM AT VDD - 1.6V\nNEEDS REPLACEMENT TO ACHIEVE TRUE RANGE FROM -2.5V TO 2.5V\nOPA2320 IS A GOOD REPLACEMENT\n\n"
+		(exclude_from_sim no)
+		(at 193.294 126.492 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(color 255 0 6 1)
+			)
+		)
+		(uuid "897eaf5f-69b1-490b-9add-f667e23eb6b4")
+	)
 	(text "Filtro Antialiasing"
 		(exclude_from_sim no)
 		(at 197.104 62.992 0)

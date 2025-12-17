@@ -2606,7 +2606,7 @@
 	)
 	(text "Comunicacion SPI\n\nSCLK = SCLK\nDIN = MOSI\nDOUT = MISO\nCS = CS\n\nVer si el Analog puede manejar SPI a través de los pines digitales"
 		(exclude_from_sim no)
-		(at 261.366 57.15 0)
+		(at 78.232 151.384 0)
 		(effects
 			(font
 				(size 1.27 1.27)

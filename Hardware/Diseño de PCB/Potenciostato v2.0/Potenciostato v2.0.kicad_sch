@@ -5165,6 +5165,19 @@
 		)
 		(uuid "fd34a243-034a-48b9-8616-b044d71d26ea")
 	)
+	(text "VCC and GND PINS are inverted, they should be corrected.\nThey don't match an standard usb disposition, this is dangerous\nIt's possible the footprint is wrong.\n"
+		(exclude_from_sim no)
+		(at 294.386 28.956 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(color 255 0 4 1)
+			)
+		)
+		(uuid "6871dded-51e5-45a7-bde0-5effd9a87178")
+	)
 	(label "DAC_SCL"
 		(at 238.76 73.66 180)
 		(fields_autoplaced yes)
@@ -9560,7 +9573,7 @@
 			)
 			(uuid "df6ef003-bd3d-494e-83ee-dd1ff5cb2197")
 		)
-		(pin "CE" input
+		(pin "CE" output
 			(at 83.82 50.8 0)
 			(effects
 				(font
