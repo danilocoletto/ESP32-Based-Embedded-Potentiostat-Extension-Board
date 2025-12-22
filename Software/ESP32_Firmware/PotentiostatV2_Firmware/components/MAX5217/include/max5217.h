@@ -17,6 +17,7 @@
 #include "esp_log.h"
 #include "driver/i2c_master.h"
 #include "gpio_config.h"
+#include "freertos/FreeRTOS.h"
 
 
 // Definiciones de pines (Ajústalo a tu placa)

@@ -2604,9 +2604,21 @@
 		)
 		(uuid "f615a142-c43e-4258-bc5c-42109949aeef")
 	)
+	(rectangle
+		(start 30.48 43.18)
+		(end 269.24 134.62)
+		(stroke
+			(width 0.381)
+			(type dash)
+		)
+		(fill
+			(type none)
+		)
+		(uuid ce41ee16-11fc-4e55-a1bc-213a23764100)
+	)
 	(text "SPI COMMUNICATION\nPROTOCOL\n\nSCLK => SCLK\nDIN => TO MOSI\nDOUT =>TO MISO\nCS => CS"
 		(exclude_from_sim no)
-		(at 254.508 59.182 0)
+		(at 250.952 55.626 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2616,9 +2628,22 @@
 		)
 		(uuid "1103617a-2df7-45d8-a186-c63028d4d75e")
 	)
+	(text "This ADC configuration is meant to be use in Single-Side mode,\nin order to measure current with AIN0-AINCOM and potential in\nthe cell with AIN1-AINCOM when doing a voltamperommetric\nexperiment. For another type of experiment, it may use a \ndifferent approach."
+		(exclude_from_sim no)
+		(at 70.104 143.002 0)
+		(effects
+			(font
+				(face "KiCad Font")
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+			)
+		)
+		(uuid "52e73f5b-796a-44de-ba21-667ee7802df5")
+	)
 	(text "XTAL1/CLKIN PIN CAN BE USED AS A CLK INPUT FOR ADS1255\nTHIS WAS ALREADY TESTED WITH AN ESP32 GENERATING A \n7.8MHZ CLOCK AND ADS1255 WORKS GOOD. TAKE INTO ACCOUNT\nTHIS OPTION IF YOU WISH TO AVOID THE XTAL OPTION\n"
 		(exclude_from_sim no)
-		(at 226.568 134.112 0)
+		(at 227.584 142.24 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2631,7 +2656,7 @@
 	)
 	(text "I PERSONALLY RECOMMEND TO FOLLOW ADS1255 DATASHEET'S \nRECOMMENDATION FOR CRYSTALS. AS I HAVE EXPERIENCED TROUBLE\nTRYING TO GET A GENERIC 8 MHZ CRYSTAL TO WORKS.\nPCB LAYOUT DOENS'T SEEMS PROBLEMATIC TO MY UNDERSTANDING.\nYOU CAN ALSO CHECK THE APPLICATION REPORT SBAA104 FROM\nTEXAS INSTRUMENTS CALLED \n\"Using Ceramic Resonators with the ADS1255/6\""
 		(exclude_from_sim no)
-		(at 227.838 147.32 0)
+		(at 228.854 155.448 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2640,6 +2665,18 @@
 			)
 		)
 		(uuid "98ecf756-22c1-446a-a47b-204e30c76490")
+	)
+	(text "ADC CIRCUIT\n"
+		(exclude_from_sim no)
+		(at 46.228 48.26 0)
+		(effects
+			(font
+				(size 2.54 2.54)
+				(thickness 0.508)
+				(bold yes)
+			)
+		)
+		(uuid "e4d9efd8-3455-4543-9655-618effba8ea9")
 	)
 	(hierarchical_label "ADC"
 		(shape input)

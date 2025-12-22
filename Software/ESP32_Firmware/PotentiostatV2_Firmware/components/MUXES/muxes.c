@@ -14,8 +14,6 @@ MIT License
 
 #include "muxes.h"
 
-#define ENABLE			1
-#define	DISABLE			0
 
 void MAX4737_Config_Pins(void)
 {
@@ -51,50 +49,50 @@ void MAX4617_Set_Gain(int gain)
 	{
 		case 0:
 			gpio_set_level(MAX4617_SEL_A, LOW);
-			gpio_set_level(MAX4617_SEL_B, HIGH);
-			gpio_set_level(MAX4617_SEL_C, HIGH);
+			gpio_set_level(MAX4617_SEL_B, LOW);
+			gpio_set_level(MAX4617_SEL_C, LOW);
 			printf("NO GAIN SET (GAIN 0) \n");
 			break;
 		case 1:
 			gpio_set_level(MAX4617_SEL_A, HIGH);
 			gpio_set_level(MAX4617_SEL_B, LOW);
-			gpio_set_level(MAX4617_SEL_C, HIGH);
+			gpio_set_level(MAX4617_SEL_C, LOW);
 			printf("GAIN SET TO 100 \n");
 			break;
 		case 2:
-			gpio_set_level(MAX4617_SEL_A, HIGH);
+			gpio_set_level(MAX4617_SEL_A, LOW);
 			gpio_set_level(MAX4617_SEL_B, HIGH);
-			gpio_set_level(MAX4617_SEL_C, HIGH);
+			gpio_set_level(MAX4617_SEL_C, LOW);
 			printf("GAIN SET TO 3K \n");
 			break;
 		case 3:
-			gpio_set_level(MAX4617_SEL_A, LOW);
-			gpio_set_level(MAX4617_SEL_B, LOW);
-			gpio_set_level(MAX4617_SEL_C, HIGH);
+			gpio_set_level(MAX4617_SEL_A, HIGH);
+			gpio_set_level(MAX4617_SEL_B, HIGH);
+			gpio_set_level(MAX4617_SEL_C, LOW);
 			printf("GAIN SET TO 30K \n");
 			break;
 		case 4:
-			gpio_set_level(MAX4617_SEL_A, HIGH);
-			gpio_set_level(MAX4617_SEL_B, HIGH);
-			gpio_set_level(MAX4617_SEL_C, LOW);
+			gpio_set_level(MAX4617_SEL_A, LOW);
+			gpio_set_level(MAX4617_SEL_B, LOW);
+			gpio_set_level(MAX4617_SEL_C, HIGH);
 			printf("GAIN SET TO 300K \n");
 			break;
 		case 5:
-			gpio_set_level(MAX4617_SEL_A, LOW);
-			gpio_set_level(MAX4617_SEL_B, HIGH);
-			gpio_set_level(MAX4617_SEL_C, LOW);
+			gpio_set_level(MAX4617_SEL_A, HIGH);
+			gpio_set_level(MAX4617_SEL_B, LOW);
+			gpio_set_level(MAX4617_SEL_C, HIGH);
 			printf("GAIN SET TO 3M \n");
 			break;
 		case 6:
-			gpio_set_level(MAX4617_SEL_A, HIGH);
-			gpio_set_level(MAX4617_SEL_B, LOW);
-			gpio_set_level(MAX4617_SEL_C, LOW);
+			gpio_set_level(MAX4617_SEL_A, LOW);
+			gpio_set_level(MAX4617_SEL_B, HIGH);
+			gpio_set_level(MAX4617_SEL_C, HIGH);
 			printf("GAIN SET TO 30M \n");
 			break;
 		case 7:
-			gpio_set_level(MAX4617_SEL_A, LOW);
-			gpio_set_level(MAX4617_SEL_B, LOW);
-			gpio_set_level(MAX4617_SEL_C, LOW);
+			gpio_set_level(MAX4617_SEL_A, HIGH);
+			gpio_set_level(MAX4617_SEL_B, HIGH);
+			gpio_set_level(MAX4617_SEL_C, HIGH);
 			printf("GAIN SET TO 100M \n");
 			break;
 	}

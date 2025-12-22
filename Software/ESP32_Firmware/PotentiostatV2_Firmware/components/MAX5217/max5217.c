@@ -26,8 +26,8 @@ static i2c_master_bus_handle_t bus_handle = NULL;
  */
 i2c_master_dev_handle_t setup_DAC(uint8_t devID)
 {
-    config_pin(DAC_NAUX, GPIO_MODE_OUTPUT, GPIO_PULLUP_ENABLE, GPIO_PULLDOWN_DISABLE, GPIO_INTR_DISABLE);
-    gpio_set_level(DAC_NAUX, HIGH);    // Lo deshabilito
+    config_pin(MAX_5217_NAUX, GPIO_MODE_OUTPUT, GPIO_PULLUP_ENABLE, GPIO_PULLDOWN_DISABLE, GPIO_INTR_DISABLE);
+    gpio_set_level(MAX_5217_NAUX, HIGH);    // Lo deshabilito
 
     // Initialize the I2C BUS (just if it hadn't been done before)
     if (bus_handle == NULL) {
@@ -90,6 +90,49 @@ i2c_master_dev_handle_t setup_DAC(uint8_t devID)
  */
 void write_DAC(i2c_master_dev_handle_t dac_handle, double mvolt_value)
 {
+    // 1. Protección de Handle nulo
+    if (dac_handle == NULL) return;
+
+    // 2. CLAMPING: Protección de rangos (CRÍTICO)
+    // Esto evita el "Integer Underflow". Si mvolt_value llega como -2500.000001,
+    // la suma daría negativo y al pasarlo a unsigned int se iría al máximo (65535).
+    // Aquí lo forzamos a mantenerse dentro de los límites seguros.
+    if (mvolt_value < -2500.0) mvolt_value = -2500.0;
+    if (mvolt_value > 2500.0)  mvolt_value = 2500.0;
+
+    unsigned int valor_DAC = 0;
+    int msg = 0;
+
+    // 3. Cálculo con REDONDEO
+    // Se suma +0.5 antes del cast (int) para redondear al entero más cercano 
+    // en lugar de truncar decimales (función piso).
+    double raw_val = ((mvolt_value + (double) DAC_REF_2_5V) * (double) MAX_VALUE_DAC) / (double) DAC_REF_5V;
+    valor_DAC = (unsigned int)(raw_val + 0.5);
+
+    // 4. Swap de Endianness (Lógica original preservada)
+    // Intercambio de lugar de los 8 bits menos significativos con los 8 mas significativos.
+    msg = (((valor_DAC & 0x00FF) << 8) | ((valor_DAC & 0xFF00) >> 8));
+    
+    // 5. Preparación del Buffer
+    uint8_t write_buffer[3];
+    write_buffer[0] = MAX5217_CMD_CODE_LOAD;       // Comando
+    write_buffer[1] = (uint8_t)(msg & 0xFF);       // Byte Alto (gracias al swap)
+    write_buffer[2] = (uint8_t)((msg >> 8) & 0xFF); // Byte Bajo
+
+    // 6. Transmisión I2C Segura (Con Timeout)
+    // Usamos un timeout de 50ms para no bloquear el sistema si hay un error eléctrico momentáneo.
+    //esp_err_t err = i2c_master_transmit(dac_handle, write_buffer, sizeof(write_buffer), 50 / portTICK_PERIOD_MS);
+    esp_err_t err = i2c_master_transmit(dac_handle, write_buffer, sizeof(write_buffer), -1);
+    
+    if (err != ESP_OK) {
+        // Solo reportamos el error, NO abortamos ni reiniciamos el ESP32
+        ESP_LOGE(TAG, "I2C Write Failed: %s", esp_err_to_name(err));
+    }
+}
+
+ /*
+void write_DAC(i2c_master_dev_handle_t dac_handle, double mvolt_value)
+{
     int valor_DAC = 0;
     int msg = 0;
     
@@ -103,7 +146,6 @@ void write_DAC(i2c_master_dev_handle_t dac_handle, double mvolt_value)
     // Intercambio de lugar de los 8 bits menos significativos con los 8 mas significativos.
     // Si valor_DAC era 0xAABB, msg será 0xBBAA.
     msg = (((valor_DAC & 0x00FF)<<8) | ((valor_DAC & 0xFF00)>>8));
-    
     uint8_t write_buffer[3];
     
     // Byte 0: El registro de comando (Command Byte)
@@ -130,7 +172,7 @@ void write_DAC(i2c_master_dev_handle_t dac_handle, double mvolt_value)
         ESP_LOGE(TAG, "I2C Write Failed: %s", esp_err_to_name(err));
     }
 }
-
+*/
 
 /**
  * @brief Resets the DAC output to a specific baseline voltage.

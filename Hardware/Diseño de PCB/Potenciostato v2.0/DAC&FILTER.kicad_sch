@@ -1940,11 +1940,23 @@
 		(uuid "fd42d98b-4a64-446e-b766-e4a5d71acd6f")
 	)
 	(rectangle
+		(start 45.72 64.77)
+		(end 139.7 120.65)
+		(stroke
+			(width 0.381)
+			(type dash)
+		)
+		(fill
+			(type none)
+		)
+		(uuid a5506f6c-38ef-4f26-96a6-5d3726580600)
+	)
+	(rectangle
 		(start 142.24 64.77)
 		(end 248.92 120.65)
 		(stroke
-			(width 0)
-			(type default)
+			(width 0.381)
+			(type dash)
 		)
 		(fill
 			(type none)
@@ -1953,7 +1965,7 @@
 	)
 	(text "IF THE BOARD IS USE WITH AN ESP32 A LEVEL SHIFTER \nFOR THE I2C COMMUNICATION IS NEDDED.\n\nPULL UPS RESISTOR OF THE MAX5217 ARE CONNECTED TO 5V\nBECAUSE MAX5217 IS POWERED WITH 5V AND A HIGH LEVEL\nIS 0.7*VCC ~ 3.4 V SO 3.3V LOGIC CAN BE TRICKY AS IT\nMAY BE NOT ENOUGH.\nMAX 5217 NEEDS TO BE POWERED WITH 5V IN ORDER TO BE\n\nYOU MAY CONSIDERED ADDING A LEVEL SHIFTER TO THIS DESIGN OR USING AN EXTERNAL ONE.\nABLE TO GENERATE SIGNAL FROM 0 TO 5V AT THE OUTPUT."
 		(exclude_from_sim no)
-		(at 87.884 133.604 0)
+		(at 91.44 136.652 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1964,9 +1976,21 @@
 		)
 		(uuid "0b8e49ef-6345-4b1d-9bfb-b0e18c781baa")
 	)
-	(text "REPLACED FOR OPA2320\n"
+	(text "ANTIALIASING FILTER\n"
 		(exclude_from_sim no)
-		(at 197.866 139.446 0)
+		(at 164.084 68.58 0)
+		(effects
+			(font
+				(size 2.54 2.54)
+				(thickness 0.508)
+				(bold yes)
+			)
+		)
+		(uuid "1e5371cb-8c7c-4e9e-8f47-a45682d95a85")
+	)
+	(text "REPLACED BY OPA2320\n"
+		(exclude_from_sim no)
+		(at 198.628 140.716 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1978,7 +2002,7 @@
 	)
 	(text "MAX4477ASA+ IS NOT TRULY RAIL TO RAIL\nIT GOES TO VSS BUT TRIMS AT VDD - 1.6V\nNEEDS REPLACEMENT TO ACHIEVE TRUE RANGE FROM -2.5V TO 2.5V\nOPA2320 IS A GOOD REPLACEMENT\n\n"
 		(exclude_from_sim no)
-		(at 198.12 133.858 0)
+		(at 198.882 135.128 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1991,7 +2015,7 @@
 	)
 	(text "This is a 4th Order Low Pass Unity Gain Sallen Key Filter\nused as an Antialiasing Filter to soften the adc output."
 		(exclude_from_sim no)
-		(at 199.39 124.46 0)
+		(at 200.152 125.73 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2001,17 +2025,17 @@
 		)
 		(uuid "8fea705d-7a3e-46f0-9141-4dd1d69a7f44")
 	)
-	(text "Antialiasing Filter\n"
+	(text "DAC CIRCUIT\n"
 		(exclude_from_sim no)
-		(at 197.104 62.992 0)
+		(at 59.182 68.58 0)
 		(effects
 			(font
-				(size 1.27 1.27)
-				(thickness 0.254)
+				(size 2.54 2.54)
+				(thickness 0.508)
 				(bold yes)
 			)
 		)
-		(uuid "a7a47a34-3b40-4a1b-a691-aa31ddde406f")
+		(uuid "ede1d91f-63e7-4f82-b47a-bcee55d5cbd9")
 	)
 	(hierarchical_label "DAC_SCL"
 		(shape input)
@@ -3938,48 +3962,8 @@
 				(hide yes)
 			)
 		)
-		(property "Height" "1.75"
-			(at 203.2 486.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Mouser Part Number" "595-OPA2320AIDR"
-			(at 203.2 586.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Texas-Instruments/OPA2320AIDR?qs=tTIQDc3uNmVIif8mgpifPg%3D%3D"
-			(at 203.2 686.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
 		(property "Manufacturer_Name" "Texas Instruments"
 			(at 203.2 786.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer_Part_Number" "OPA2320AIDR"
-			(at 203.2 886.36 0)
 			(effects
 				(font
 					(size 1.27 1.27)

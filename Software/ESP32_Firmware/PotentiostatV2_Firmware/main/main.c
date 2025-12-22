@@ -64,24 +64,47 @@ void procesar_comando_completo(int comando) {
     }
     
     // CASO 4: RESERVADOS (Comandos 14-18) - Preparados para futuro
-    else if (comando >= 14 && comando <= 18) {
-        double valor;
+    else if (comando >= 14 && comando <= 27) {
         switch (comando) {
             case 14: printf("Comando 14: RESERVADO (Sin implementar)\n");
                      write_DAC(dac_handle, 0.0); 
                      break;
             case 15: printf("Comando 15: RESERVADO (Sin implementar)\n");
-                     valor = 1250.0;
-                     write_DAC(dac_handle, valor); 
+                     write_DAC(dac_handle, -2300.0); 
                      break;
             case 16: printf("Comando 16: RESERVADO (Sin implementar)\n");
-                     write_DAC(dac_handle, 2500.0);
+                     write_DAC(dac_handle, -2400.0);
                      break;
             case 17: printf("Comando 17: RESERVADO (Sin implementar)\n");
-                     valor = -2500.0;
-                     write_DAC(dac_handle, valor);
+                     write_DAC(dac_handle, -2500.0);
                      break;
-            case 18: printf("Comando 18: RESERVADO (Sin implementar)\n"); break;
+            case 18: printf("Comando 18: RESERVADO (Sin implementar)\n");
+                     write_DAC(dac_handle, -2000.0);
+                     break;
+            case 19: printf("Comando 18: RESERVADO (Sin implementar)\n");
+                     MAX4617_Set_Gain(NO_GAIN);
+                     break;
+            case 20: printf("Comando 18: RESERVADO (Sin implementar)\n");
+                     MAX4617_Set_Gain(GAIN1_100);
+                     break;
+            case 21: printf("Comando 18: RESERVADO (Sin implementar)\n");
+                     MAX4617_Set_Gain(GAIN2_3K);
+                     break;
+            case 22: printf("Comando 18: RESERVADO (Sin implementar)\n");
+                     MAX4617_Set_Gain(GAIN3_30K);
+                     break;
+            case 23: printf("Comando 18: RESERVADO (Sin implementar)\n");
+                     MAX4617_Set_Gain(GAIN4_300K);
+                     break;
+            case 24: printf("Comando 18: RESERVADO (Sin implementar)\n");
+                     MAX4617_Set_Gain(GAIN5_3M);
+                     break;
+            case 25: printf("Comando 18: RESERVADO (Sin implementar)\n");
+                     MAX4617_Set_Gain(GAIN6_30M);
+                     break;
+            case 26: printf("Comando 18: RESERVADO (Sin implementar)\n");
+                     MAX4617_Set_Gain(GAIN7_100M);
+                     break;
         }
     }
     
@@ -116,6 +139,9 @@ void app_main(void)
     MAX4617_Config_Pins();
     gpio_set_level(MAX4737_CE_EN, HIGH);
     gpio_set_level(MAX4737_RE_FB_EN, HIGH);
+    gpio_set_level(MAX4737_WE_EN, HIGH);
+
+    MAX4617_Set_Gain(GAIN4_300K);
 
     // --- INICIALIZACIÓN DAC MAX5217 ---
     ESP_LOGI(TAG, "Configurando DAC MAX5217...");
@@ -137,7 +163,7 @@ void app_main(void)
 
     vTaskDelay(pdMS_TO_TICKS(100));
     ESP_LOGI(TAG, "Inicializando ADS1255...");
-    ADS125X_Init(&my_ads, ADS1255_SPI_HANDLER, ADS125X_DRATE_15SPS, ADS125X_PGA1, ADS125X_BUFOFF);
+    ADS125X_Init(&my_ads, ADS1255_SPI_HANDLER, ADS125X_DRATE_1000SPS, ADS125X_PGA1, ADS125X_BUFOFF);
     vTaskDelay(pdMS_TO_TICKS(100)); // Pequeña espera
     ESP_LOGI(TAG, "Sistema Listo. Escriba numero + ENTER (Ej: '10' o '12').");
 
@@ -201,5 +227,8 @@ void app_main(void)
             gpio_set_level(GREEN_LED, led_state);
             ms_counter = 0;
         }
+        float voltage = ADS125X_ADC_ReadVolt(&my_ads);
+        //printf("ADC Sample Voltage: %f V\n", voltage);
+        printf("%f\n", voltage);
     }
 }

@@ -174,6 +174,12 @@ uint8_t ADS125X_Init(ADS125X_t *ads, spi_device_handle_t hspi, uint8_t drate, ui
   printf("DRATE: %#.2x\n", tmp[0]);
 #endif
 
+  ADS125X_Register_Write(ads, ADS125X_REG_MUX, ADS125X_MUXP_AIN0 | ADS125X_MUXN_AINCOM); // mux, medir ADC
+#ifdef DEBUG_ADS1255
+  ADS125X_Register_Read(ads, ADS125X_REG_IO, tmp, 1);
+  printf("IO   : %#.2x\n", tmp[0]);
+#endif
+
   ADS125X_Register_Write(ads, ADS125X_REG_IO, 0x00); // all GPIOs are outputs (do not leave floating) - D0 is CLKOUT
 #ifdef DEBUG_ADS1255
   ADS125X_Register_Read(ads, ADS125X_REG_IO, tmp, 1);
