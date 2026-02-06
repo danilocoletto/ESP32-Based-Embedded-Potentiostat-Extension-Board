@@ -1,33 +1,26 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h> // Necesario para atoi()
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_log.h"
-#include "esp_attr.h"
-#include "esp_rom_sys.h"
-#include "driver/uart.h"
+#include <stdlib.h>
+//#include "freertos/FreeRTOS.h"
+//#include "freertos/task.h"
+//#include "esp_log.h"
+//#include "esp_attr.h"
+//#include "esp_rom_sys.h"
 
 // Tus librerías
 #include "gpio_config.h"
 #include "ads1255.h"
 #include "max5217.h"
 #include "muxes.h"
+#include "experiments.h"
+#include "general.h"
 
 // --- DEFINICIONES DE HARDWARE ---
 #define GREEN_LED          GPIO_NUM_2   
 
-// --- CONFIGURACIÓN UART ---
-#define UART_PORT_NUM      UART_NUM_0
-#define UART_BAUD_RATE     115200
-#define BUF_SIZE           1024
-#define UART_RX_BUFFER_SIZE 32 // Tamaño máximo de la línea de comando (ej: "10\n")
 
 static const char *TAG = "MAIN_APP";
 
-// Instancia global del ADC
-ADS125X_t my_ads;
-i2c_master_dev_handle_t dac_handle; // Handle para el DAC MAX5217
 
 // --- PROCESAMIENTO DE COMANDOS (Lógica Central) ---
 void procesar_comando_completo(int comando) {
@@ -47,19 +40,20 @@ void procesar_comando_completo(int comando) {
         uint8_t reg_addr = mapa_registros[index];
         uint8_t reg_val = 0;
         
-        ADS125X_Register_Read(&my_ads, reg_addr, &reg_val, 1);
+
+        ADS125X_READ_REG_HAL(reg_addr, &reg_val, 1);
         printf("[CMD %d] REG %s (0x%02X) = 0x%02X\n", comando, nombres_registros[index], reg_addr, reg_val);
     }
     
     // CASO 2: LEER MUESTRA ADC (Comando 12)
     else if (comando == 12) {
-        float voltage = ADS125X_ADC_ReadVolt(&my_ads);
+        float voltage = ADS125X_READVOLT_HAL();
         printf("ADC Sample Voltage: %f V\n", voltage);
     }
     
     // CASO 3: RESETEAR ADC (Comando 13)
     else if (comando == 13) {
-        ADS125X_CMD_Send(&my_ads, ADS125X_CMD_RESET);
+        ADS125X_CMD_SEND_HAL(ADS125X_CMD_RESET);
         esp_rom_delay_us(5000);
     }
     
@@ -67,19 +61,19 @@ void procesar_comando_completo(int comando) {
     else if (comando >= 14 && comando <= 27) {
         switch (comando) {
             case 14: printf("Comando 14: RESERVADO (Sin implementar)\n");
-                     write_DAC(dac_handle, 0.0); 
+                     MAX5217_DAC_WRITE_HAL_MV(0.0); 
                      break;
             case 15: printf("Comando 15: RESERVADO (Sin implementar)\n");
-                     write_DAC(dac_handle, -2300.0); 
+                     MAX5217_DAC_WRITE_HAL_MV(2500.0); 
                      break;
             case 16: printf("Comando 16: RESERVADO (Sin implementar)\n");
-                     write_DAC(dac_handle, -2400.0);
+                     MAX5217_DAC_WRITE_HAL_MV(-2400.0);
                      break;
             case 17: printf("Comando 17: RESERVADO (Sin implementar)\n");
-                     write_DAC(dac_handle, -2500.0);
+                     MAX5217_DAC_WRITE_HAL_MV(-2500.0);
                      break;
             case 18: printf("Comando 18: RESERVADO (Sin implementar)\n");
-                     write_DAC(dac_handle, -2000.0);
+                     MAX5217_DAC_WRITE_HAL_MV(-2000.0);
                      break;
             case 19: printf("Comando 18: RESERVADO (Sin implementar)\n");
                      MAX4617_Set_Gain(NO_GAIN);
@@ -114,23 +108,9 @@ void procesar_comando_completo(int comando) {
     }
 }
 
-// Inicialización de la UART
-void init_uart(void) {
-    const uart_config_t uart_config = {
-        .baud_rate = UART_BAUD_RATE,
-        .data_bits = UART_DATA_8_BITS,
-        .parity    = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .source_clk = UART_SCLK_DEFAULT,
-    };
-    uart_driver_install(UART_PORT_NUM, BUF_SIZE * 2, BUF_SIZE, 0, NULL, 0);
-    uart_param_config(UART_PORT_NUM, &uart_config);
-    uart_set_pin(UART_PORT_NUM, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-}
 
 // --- MAIN ---
-void app_main(void)
+/*void app_main(void)
 {
     // Inicializar UART
     init_uart();
@@ -146,25 +126,14 @@ void app_main(void)
     // --- INICIALIZACIÓN DAC MAX5217 ---
     ESP_LOGI(TAG, "Configurando DAC MAX5217...");
     uart_wait_tx_done(UART_NUM_0, 100); // Wait up to 1000ms
-    dac_handle = setup_DAC(DAC1_DEVICE_ID); //
-    if (dac_handle) {
-        clear_DAC(dac_handle); // Pone el DAC en 2.048V inicial
-    } else {
-        ESP_LOGE(TAG, "Error inicializando DAC!");
-    }
 
-    // Inicializar SPI y ADS
-    spi_device_handle_t ADS1255_SPI_HANDLER = init_spi_bus();
-
-    my_ads.csPin = ADS1255_CS;
-    my_ads.drdyPin = ADS1255_DRDY;
-    my_ads.vref = ADS125X_VREF_2_5V;
-    my_ads.oscFreq = ADS125X_OSC_FREQ_7_8M;
+    MAX5217_DAC_Setup_HAL();
 
     vTaskDelay(pdMS_TO_TICKS(100));
     ESP_LOGI(TAG, "Inicializando ADS1255...");
-    ADS125X_Init(&my_ads, ADS1255_SPI_HANDLER, ADS125X_DRATE_1000SPS, ADS125X_PGA1, ADS125X_BUFOFF);
+    ADS125X_INIT_HAL(ADS125X_DRATE_30000SPS, ADS125X_PGA1, ADS125X_BUFOFF);
     vTaskDelay(pdMS_TO_TICKS(100)); // Pequeña espera
+    ADS125X_STANDBY_HAL();
     ESP_LOGI(TAG, "Sistema Listo. Escriba numero + ENTER (Ej: '10' o '12').");
 
     ESP_LOGI(TAG, "Sistema Listo. Generando onda en DAC...");
@@ -204,21 +173,21 @@ void app_main(void)
 
         // B. Generación de Onda Cíclica (DAC)
         // Se actualiza cada ciclo del while (aprox cada 10ms debido al timeout del UART)
-        if (dac_handle) {
-            wave_volt += wave_step;
+    
+        wave_volt += wave_step;
             
-            // Límites para oscilar entre -2500mV y +2500mV (Rango completo del DAC según tu lib)
-            if (wave_volt >= 2500.0) {
-                wave_volt = 2500.0;
-                wave_step = -wave_step; // Invertir dirección
-            } else if (wave_volt <= -2500.0) {
-                wave_volt = -2500.0;
-                wave_step = -wave_step; // Invertir dirección
-            }
-            
-            // Escribir al DAC
-            write_DAC(dac_handle, wave_volt);
+        // Límites para oscilar entre -2500mV y +2500mV (Rango completo del DAC según tu lib)
+        if (wave_volt >= 2500.0) {
+            wave_volt = 2500.0;
+            wave_step = -wave_step; // Invertir dirección
+        } else if (wave_volt <= -2500.0) {
+            wave_volt = -2500.0;
+            wave_step = -wave_step; // Invertir dirección
         }
+            
+        // Escribir al DAC
+        MAX5217_DAC_WRITE_HAL_MV(wave_volt);
+        
 
         // C. Parpadeo del LED
         ms_counter += 10; 
@@ -227,8 +196,62 @@ void app_main(void)
             gpio_set_level(GREEN_LED, led_state);
             ms_counter = 0;
         }
-        float voltage = ADS125X_ADC_ReadVolt(&my_ads);
+        ADS125X_WAKEUP_HAL();
+        ADS125X_WAIT_DYDR_HAL();
+        float voltage = ADS125X_READVOLT_HAL();
+        ADS125X_STANDBY_HAL();
         //printf("ADC Sample Voltage: %f V\n", voltage);
         printf("%f\n", voltage);
+    }
+}*/
+
+// --- MAIN ---
+void app_main(void)
+{
+    // Inicializar UART
+    init_uart();
+    config_pin(GREEN_LED, GPIO_MODE_OUTPUT, GPIO_PULLUP_DISABLE, GPIO_PULLDOWN_ENABLE, GPIO_INTR_DISABLE);
+    MAX4737_Config_Pins();
+    MAX4617_Config_Pins();
+    gpio_set_level(MAX4737_CE_EN, LOW);
+    gpio_set_level(MAX4737_RE_FB_EN, LOW);
+    gpio_set_level(MAX4737_WE_EN, LOW);
+
+    MAX4617_Set_Gain(GAIN4_300K);
+
+    // --- INICIALIZACIÓN DAC MAX5217 ---
+    ESP_LOGI(TAG, "Configurando DAC MAX5217...");
+    uart_wait_tx_done(UART_NUM_0, 100); // Wait up to 1000ms
+
+    MAX5217_DAC_Setup_HAL();
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    ESP_LOGI(TAG, "Inicializando ADS1255...");
+    ADS125X_INIT_HAL(ADS125X_DRATE_50SPS, ADS125X_PGA1, ADS125X_BUFOFF);
+    vTaskDelay(pdMS_TO_TICKS(100)); 
+    ADS125X_STANDBY_HAL();
+    ESP_LOGI(TAG, "Sistema Listo.");
+
+    SWV_config experiment_swv1;
+
+    // Variables LED
+    int led_state = 0;
+
+    experiment_swv1.initial_pot_mv = (int16_t) -1500;
+    experiment_swv1.final_pot_mv = (int16_t) 1300;
+    experiment_swv1.freq_hz = 20;
+    experiment_swv1.pulse_amplitude_mv = 50;
+    experiment_swv1.step_pot_mv = 10;
+    experiment_swv1.quiet_time_s = 5;
+
+    if (execute_SWV_experiment(&experiment_swv1) == 0)
+        printf("Experiment executed with success \n");
+
+    while (1) 
+    {
+
+            led_state = !led_state;
+            gpio_set_level(GREEN_LED, led_state);
+            vTaskDelay(pdMS_TO_TICKS(500));
     }
 }

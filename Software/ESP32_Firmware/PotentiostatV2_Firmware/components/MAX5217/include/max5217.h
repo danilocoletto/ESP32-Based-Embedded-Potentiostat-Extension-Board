@@ -1,7 +1,7 @@
 /*******************************************************************************
  * @file        max5217.h
  * @brief       C Header Library for MAX5217 Digital to Analog Converter
- * @details     This file implements the functionalities of the ADC.
+ * @details     This file implements the functionalities of the DAC.
  * @version     1.0
  * @author      Ing. Danilo Coletto Gallego
  * @date        04.12.2025
@@ -24,7 +24,7 @@
 #define MAX_5217_NAUX             GPIO_NUM_32
 #define MAX_5217_SCL              GPIO_NUM_22
 #define MAX_5217_SDA              GPIO_NUM_21
-#define I2C_MASTER_FREQ_HZ          10000    // 100kHz o 400kHz
+#define I2C_MASTER_FREQ_HZ        400000    // 100kHz o 400kHz
 
 // DATOS DEL DAC
 #define DAC1_DEVICE_ID 	            0x1C
@@ -42,10 +42,22 @@
 #define MAX5217_CMD_SW_RESET 		0x09
 #define MAX5217_CMD_SW_CLEAR		0x10
 
-void i2c_scanner(i2c_master_bus_handle_t bus_handle);
-i2c_master_dev_handle_t setup_DAC(uint8_t devID);
-void write_DAC(i2c_master_dev_handle_t dac_handle, double mvolt_value);
-void clear_DAC(i2c_master_dev_handle_t dac_handle);
 
+
+
+/*********Internal Functions for ADS1255*********/
+void                        I2C_Scanner              (i2c_master_bus_handle_t bus_handle);
+
+/**************Functions for ADS1255************/
+
+i2c_master_dev_handle_t     MAX5217_Setup_DAC        (uint8_t devID);
+void                        MAX5217_Write_DAC_MV     (i2c_master_dev_handle_t dac_handle, float mvolt_value);
+void                        MAX5217_Clear_DAC        (i2c_master_dev_handle_t dac_handle);
+
+/*********HAL Layer Functions for ADS1255*********/
+
+void        MAX5217_DAC_Setup_HAL       (void);
+int         MAX5217_DAC_WRITE_HAL_MV    (float millivoltage);
+void        MAX5217_DAC_CLEAR_HAL       (void);
 
 #endif	/* MAX5217_H */
