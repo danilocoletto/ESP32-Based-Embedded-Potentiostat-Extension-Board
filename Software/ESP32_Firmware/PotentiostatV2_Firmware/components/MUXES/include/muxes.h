@@ -14,6 +14,9 @@ MIT License
 
 #include "gpio_config.h"
 
+#define     CONNECTED           1
+#define     DISCONNECTED        0
+
 // --- PINOUT MAX4617 FOR ESP32 ---
 
 #define MAX4617_SEL_A       GPIO_NUM_27

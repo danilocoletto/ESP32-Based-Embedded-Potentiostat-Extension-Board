@@ -698,7 +698,8 @@ uint8_t ADS125X_DRDY_Wait(ADS125X_t *ads) {
     // Timeout se selecciona automaticamente dependiendo del Settle Time del ADS1255 
     int32_t timeout_us = ADS125X_Get_Timeout_Us(ads->current_drate);
     int64_t t_start = esp_timer_get_time();     // Marca de tiempo (µs)
-    while (gpio_get_level(ads->drdyPin) == 1) {
+    while (gpio_get_level(ads->drdyPin) == 1) 
+    {
         if((esp_timer_get_time() - t_start) >= timeout_us) {
             ESP_LOGE("ADS125X", "Error: DRDY Timeout. El sensor no responde.");
             return 1; // Error
@@ -827,7 +828,7 @@ void ADS125X_WRITE_REG_HAL (uint8_t reg, uint8_t data)
   ADS125X_Register_Write(&ADS1255, reg, data);
 }
 
-void ADS125X_WAIT_DYDR_HAL (void)
+uint8_t ADS125X_WAIT_DYDR_HAL (void)
 {
-  ADS125X_DRDY_Wait(&ADS1255);
+  return ADS125X_DRDY_Wait(&ADS1255);
 }

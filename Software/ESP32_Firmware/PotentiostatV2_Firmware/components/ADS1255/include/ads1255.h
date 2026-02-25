@@ -269,7 +269,7 @@ void     ADS125X_CMD_SEND_HAL       (uint8_t cmd);
 float    ADS125X_READVOLT_HAL       (void);
 uint8_t  ADS125X_READ_REG_HAL       (uint8_t reg, uint8_t* pData, uint8_t n);
 void     ADS125X_WRITE_REG_HAL      (uint8_t reg, uint8_t data);
-void     ADS125X_WAIT_DYDR_HAL      (void);
+uint8_t  ADS125X_WAIT_DYDR_HAL      (void);
 
 
 
