@@ -1,0 +1,14 @@
+{
+    "experiment_id": "actionSWV",
+    "experiment_name": "Square Wave Voltammetry",
+    "page_index": 1,
+    "parameters": {
+        "precond_on_off": false,
+        "swv_pulse_amplitude": 25,
+        "swv_quiet_t": 2,
+        "swv_step_pot": 10,
+        "swv_final_pot": 1000,
+        "swv_pulse_freq": 40,
+        "swv_initial_pot": -1000
+    }
+}

@@ -1,0 +1,2093 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>768</height>
+   </rect>
+  </property>
+  <property name="mouseTracking">
+   <bool>false</bool>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* Estilo para la ventana de fondo */
+QMainWindow {
+    background-color: #F0F4F9; /* Azul muy claro tipo Windows 11 */
+}
+
+/* Estilo para los contenedores de los experimentos (Stacked Widget o Frames) */
+QStackedWidget, QFrame {
+    background-color: transparent;
+}
+
+/* Estilo para que tus cajas de texto combinen */
+QLineEdit {
+    border: 1px solid #D1D9E0;
+    border-radius: 6px;
+    padding: 6px;
+    background-color: #FFFFFF;
+    color: #202124;
+}
+
+/* Cuando el usuario hace clic en un parámetro */
+QLineEdit:focus {
+    border: 1px solid #0078D4; /* El azul clásico de selección de Windows */
+    background-color: #FFFFFF;
+}
+
+/* Si usas QGroupBox para separar los parámetros del ADS1255 */
+QGroupBox {
+    border: 1px solid #D1D9E0;
+    border-radius: 8px;
+    margin-top: 1.5em;
+    background-color: #FFFFFF;
+    font-weight: bold;
+}
+
+/* 1. La barra principal en la parte superior */
+QMenuBar {
+    background-color: #F0F4F9; /* El mismo azul pastel de tu ventana */
+    color: #202124;            /* Texto negro carbón */
+    border: 1px solid #D1D9E0; /* Borde sutil */
+    font-family: &quot;Segoe UI&quot;;
+    font-size: 13px;
+}
+
+/* 2. Cuando pasas el mouse por encima de una opción (ej. &quot;Experimentos&quot;) */
+QMenuBar::item:selected {
+    background-color: #E0E7EF; /* Un gris-azul un poco más oscuro */
+    border-radius: 4px;
+}
+
+/* 3. El menú que se despliega hacia abajo */
+QMenu {
+    background-color: #FFFFFF; /* Fondo blanco para las opciones */
+    color: #202124;            /* Texto negro */
+    border: 1px solid #D1D9E0; /* Borde sutil */
+    border-radius: 4px;        /* Bordes redondeados modernos */
+    padding: 5px;
+}
+
+/* 4. Las opciones individuales dentro del menú desplegado */
+QMenu::item {
+    padding: 8px 25px 8px 10px;
+    border-radius: 4px;
+}
+
+/* 5. Cuando pasas el mouse sobre una opción específica (ej. &quot;Voltametría&quot;) */
+QMenu::item:selected {
+    background-color: #CCE5FF; /* Celeste pastel del resaltado */
+    color: #000000;
+}</string>
+  </property>
+  <property name="toolButtonStyle">
+   <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="PlotWidget" name="graphicsView">
+    <property name="geometry">
+     <rect>
+      <x>421</x>
+      <y>62</y>
+      <width>606</width>
+      <height>575</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QGraphicsView {
+    border: 1px solid #D1D9E0; /* Borde sutil */
+    border-radius: 0px;            /* Esquinas ligeramente redondeadas */
+    background-color: white;       /* Fondo blanco para contraste */
+}
+</string>
+    </property>
+    <property name="sizeAdjustPolicy">
+     <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+    </property>
+   </widget>
+   <widget class="QProgressBar" name="progressBar">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>680</y>
+      <width>1024</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QProgressBar {
+    border: 1px solid #B0BCC7;       /* Borde más definido y oscuro */
+    border-radius: 0px;
+    background-color: #E6EBF0;       /* Fondo gris-azul sutilmente más oscuro */
+    text-align: center;
+    color: #1A1A1A;                  /* Texto casi negro para máxima legibilidad */
+    font-family: &quot;Segoe UI&quot;, sans-serif;
+    font-size: 11px;
+    height: 18px;
+}
+
+QProgressBar::chunk {
+    /* Un azul acero más serio y oscuro */
+    background-color: #0078D4;       
+    border: 0px;                     /* Sin bordes internos para un look sólido */
+}
+</string>
+    </property>
+    <property name="value">
+     <number>0</number>
+    </property>
+    <property name="textVisible">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QStackedWidget" name="stackedWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>2</y>
+      <width>417</width>
+      <height>605</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">/* Esto afecta a todas las etiquetas dentro del Stacked Widget */
+QStackedWidget QLabel {
+    color: #202124;            /* Un negro carbón suave, más moderno */
+    font-family: &quot;Segoe UI&quot;;   /* Para mantener el estilo Windows 11 */
+    font-size: 14px;           /* Tamaño legible para parámetros */
+    background-color: transparent; /* Evita que la etiqueta tape el fondo pastel */
+}
+</string>
+    </property>
+    <property name="currentIndex">
+     <number>2</number>
+    </property>
+    <widget class="QWidget" name="EmptyPage"/>
+    <widget class="QWidget" name="page1_SWV">
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>310</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Initial Potential</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>350</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Final Potential</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>390</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Pulse Frequency</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_4">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>430</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Pulse Amplitude</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_5">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>470</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Step E</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_6">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>510</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Quiet Time</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="precond_on_off">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>80</y>
+        <width>221</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QCheckBox {
+    spacing: 8px;              /* Espacio entre el cuadro y el texto */
+    color: #1A1A1A;            /* Texto casi negro */
+    font-family: &quot;Segoe UI&quot;;
+    font-size: 13px;
+}
+
+/* El cuadro del checkbox */
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #B0BCC7; /* Borde recto igual que tus botones y barras */
+    border-radius: 0px;        /* Bordes totalmente rectos para el look industrial */
+    background-color: #FFFFFF; /* Fondo blanco */
+}
+
+/* Cuando el mouse pasa por encima */
+QCheckBox::indicator:hover {
+    border: 1px solid #7092BE; /* Resaltado azul acero */
+    background-color: #F0F4F9; /* Fondo azul glaciar muy tenue */
+}
+
+/* Cuando está marcado (Checked) */
+QCheckBox::indicator:checked {
+    background-color: #7092BE; /* Fondo azul acero sólido */
+    border: 1px solid #5A769A;
+    /* Aquí podrías añadir una imagen de una tilde blanca si la tienes, 
+       si no, el cambio de color sólido ya indica que está activo */
+}
+
+/* Cuando está deshabilitado */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+QCheckBox::indicator:disabled {
+    background-color: #E6EBF0;
+    border: 1px solid #D1D9E0;
+}</string>
+      </property>
+      <property name="text">
+       <string>Pretreatment Electrodeposition</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_13">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>160</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Cuando está deshabilitado */
+QLabel:disabled {
+    color: #A0A0A0;
+}
+</string>
+      </property>
+      <property name="text">
+       <string>Deposition Potential</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_21">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>200</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Cuando está deshabilitado */
+QLabel:disabled {
+    color: #A0A0A0;
+}
+</string>
+      </property>
+      <property name="text">
+       <string>Deposition Time</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_22">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>240</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Cuando está deshabilitado */
+QLabel:disabled {
+    color: #A0A0A0;
+}
+</string>
+      </property>
+      <property name="text">
+       <string>Quiet Time</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="stir_on_off">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>110</y>
+        <width>221</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QCheckBox {
+    spacing: 8px;              /* Espacio entre el cuadro y el texto */
+    color: #1A1A1A;            /* Texto casi negro */
+    font-family: &quot;Segoe UI&quot;;
+    font-size: 13px;
+}
+
+/* El cuadro del checkbox */
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #B0BCC7; /* Borde recto igual que tus botones y barras */
+    border-radius: 0px;        /* Bordes totalmente rectos para el look industrial */
+    background-color: #FFFFFF; /* Fondo blanco */
+}
+
+/* Cuando el mouse pasa por encima */
+QCheckBox::indicator:hover {
+    border: 1px solid #7092BE; /* Resaltado azul acero */
+    background-color: #F0F4F9; /* Fondo azul glaciar muy tenue */
+}
+
+/* Cuando está marcado (Checked) */
+QCheckBox::indicator:checked {
+    background-color: #7092BE; /* Fondo azul acero sólido */
+    border: 1px solid #5A769A;
+    /* Aquí podrías añadir una imagen de una tilde blanca si la tienes, 
+       si no, el cambio de color sólido ya indica que está activo */
+}
+
+/* Cuando está deshabilitado */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+QCheckBox::indicator:disabled {
+    background-color: #E6EBF0;
+    border: 1px solid #D1D9E0;
+}</string>
+      </property>
+      <property name="text">
+       <string>Stir During Deposition</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="swv_pulse_amplitude">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>430</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> mV</string>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>1000</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="swv_quiet_t">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>510</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> s</string>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>1000</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="swv_step_pot">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>470</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> mV</string>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="swv_final_pot">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>350</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> mV</string>
+      </property>
+      <property name="minimum">
+       <number>-2500</number>
+      </property>
+      <property name="maximum">
+       <number>2500</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="swv_pulse_freq">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>390</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> Hz</string>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>1500</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="swv_initial_pot">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>310</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> mV</string>
+      </property>
+      <property name="minimum">
+       <number>-2500</number>
+      </property>
+      <property name="maximum">
+       <number>2500</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="deposition_pot">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>160</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}
+
+/* Cuando está deshabilitado */
+QSpinBox:disabled {
+    color: #A0A0A0;
+}
+</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> mV</string>
+      </property>
+      <property name="minimum">
+       <number>-2000</number>
+      </property>
+      <property name="maximum">
+       <number>2000</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="deposition_time">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>200</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}
+
+/* Cuando está deshabilitado */
+QSpinBox:disabled {
+    color: #A0A0A0;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> s</string>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>1000</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="precond_quiet_t">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>240</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}
+
+/* Cuando está deshabilitado */
+QSpinBox:disabled {
+    color: #A0A0A0;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> s</string>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>1000</number>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="page2_LSV">
+     <widget class="QLabel" name="label_15">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>320</y>
+        <width>171</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Segments</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_14">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>360</y>
+        <width>171</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Scan Rate</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_16">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>200</y>
+        <width>171</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Switching Potential 1</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_18">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>280</y>
+        <width>171</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Final Potential</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_17">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>160</y>
+        <width>171</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Initial Potential</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_19">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>240</y>
+        <width>171</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Switching Potential 2</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_20">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>400</y>
+        <width>171</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Quiet Time</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="lsv_initial_pot">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>160</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> mV</string>
+      </property>
+      <property name="minimum">
+       <number>-2500</number>
+      </property>
+      <property name="maximum">
+       <number>2500</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="lsv_switch_pot1">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>200</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> mV</string>
+      </property>
+      <property name="minimum">
+       <number>-2500</number>
+      </property>
+      <property name="maximum">
+       <number>2500</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="lsv_final_pot">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>280</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> mV</string>
+      </property>
+      <property name="minimum">
+       <number>-2500</number>
+      </property>
+      <property name="maximum">
+       <number>2500</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="lsv_switch_pot2">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>240</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> mV</string>
+      </property>
+      <property name="minimum">
+       <number>-2500</number>
+      </property>
+      <property name="maximum">
+       <number>2500</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="lsv_scan_rate">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>360</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> mV/s</string>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>1000</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="lsv_quiet_time">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>400</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> s</string>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>1000</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="lsv_segments">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>320</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string/>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="StatusFrame">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>644</y>
+      <width>1024</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Shadow::Raised</enum>
+    </property>
+    <widget class="QLineEdit" name="CurrentDisplay">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>0</y>
+       <width>181</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    /* Fondo gris suave para indicar que es de solo lectura */
+    background-color: #E6EBF0; 
+    border: 1px solid #B0BCC7;
+    border-radius: 0px; /* Bordes rectos industriales */
+    padding-left: 8px;
+    
+    /* Texto con fuente técnica */
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;, &quot;Consolas&quot;; 
+    font-weight: bold;
+    font-size: 12px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Current Measure:   00.00</string>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="TimeDisplay">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>0</y>
+       <width>113</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::FocusPolicy::NoFocus</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    /* Fondo gris suave para indicar que es de solo lectura */
+    background-color: #E6EBF0; 
+    border: 1px solid #B0BCC7;
+    border-radius: 0px; /* Bordes rectos industriales */
+    padding-left: 8px;
+    
+    /* Texto con fuente técnica */
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;, &quot;Consolas&quot;; 
+    font-weight: bold;
+    font-size: 12px;
+}</string>
+     </property>
+     <property name="text">
+      <string> Time:   00.00 s</string>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="StatusDisplay">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>161</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    /* Fondo gris suave para indicar que es de solo lectura */
+    background-color: #E6EBF0; 
+    border: 1px solid #B0BCC7;
+    border-radius: 0px; /* Bordes rectos industriales */
+    
+    /* Texto con fuente técnica */
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;, &quot;Consolas&quot;; 
+    font-weight: bold;
+    font-size: 12px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Status:   DISCONNECTED</string>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="CurrentScaleDisplay">
+     <property name="geometry">
+      <rect>
+       <x>450</x>
+       <y>0</y>
+       <width>211</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    /* Fondo gris suave para indicar que es de solo lectura */
+    background-color: #E6EBF0; 
+    border: 1px solid #B0BCC7;
+    border-radius: 0px; /* Bordes rectos industriales */
+    padding-left: 8px;
+    
+    /* Texto con fuente técnica */
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;, &quot;Consolas&quot;; 
+    font-weight: bold;
+    font-size: 12px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Current Scale Selected:   </string>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="AmpGainDisplay">
+     <property name="geometry">
+      <rect>
+       <x>660</x>
+       <y>0</y>
+       <width>161</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    /* Fondo gris suave para indicar que es de solo lectura */
+    background-color: #E6EBF0; 
+    border: 1px solid #B0BCC7;
+    border-radius: 0px; /* Bordes rectos industriales */
+    padding-left: 8px;
+    
+    /* Texto con fuente técnica */
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;, &quot;Consolas&quot;; 
+    font-weight: bold;
+    font-size: 12px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Amplifier Gain:   </string>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="ElectrodesDisplay">
+     <property name="geometry">
+      <rect>
+       <x>820</x>
+       <y>0</y>
+       <width>206</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    /* Fondo gris suave para indicar que es de solo lectura */
+    background-color: #E6EBF0; 
+    border: 1px solid #B0BCC7;
+    border-radius: 0px; /* Bordes rectos industriales */
+    padding-left: 8px;
+    
+    /* Texto con fuente técnica */
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;, &quot;Consolas&quot;; 
+    font-weight: bold;
+    font-size: 12px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Electrodes Status:    DISENGAGED</string>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="frame_2">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>602</y>
+      <width>419</width>
+      <height>35</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Shadow::Raised</enum>
+    </property>
+    <widget class="QPushButton" name="stop_button">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>212</x>
+       <y>0</y>
+       <width>207</width>
+       <height>35</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+    /* Un rojo más saturado y &quot;alerta&quot;, similar al de sistemas modernos */
+    background-color: #EF4444; 
+    /* Borde en un rojo vino sutil para mantener profundidad sin verse opaco */
+    border: 1px solid #B91C1C;
+    border-radius: 4px; /* Un toque leve de redondez para sintonizar con Windows 11 */
+    
+    /* Texto */
+    color: #FFFFFF;          /* Texto blanco para máximo contraste sobre el rojo vivo */
+    font-family: &quot;Segoe UI&quot;;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center; 
+}
+
+QPushButton:hover {
+    /* Rojo un poco más brillante al pasar el mouse */
+    background-color: #DC2626;
+    /* Usamos el azul Windows 11 que elegiste para el borde de selección */
+    border: 1px solid #0078D4; 
+}
+
+QPushButton:pressed {
+    /* Rojo más profundo al hacer clic */
+    background-color: #991B1B;
+    border: 1px solid #1A1A1A;
+}
+
+/* Cuando está deshabilitado */
+QPushButton:disabled {
+    background-color: #FCA5A5; /* Un rojo muy deslavado */
+    color: #F8F8F8;
+    border: 1px solid #E5E7EB;
+}</string>
+     </property>
+     <property name="text">
+      <string>Stop Experiment</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="init_button">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>2</x>
+       <y>0</y>
+       <width>207</width>
+       <height>35</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+    /* Un verde esmeralda vivo y moderno */
+    background-color: #10B981;
+    /* Borde en un verde bosque profundo para dar estructura */
+    border: 1px solid #065F46;
+    /* Redondeo de 4px para coincidir con el botón Stop y estilo Windows 11 */
+    border-radius: 4px; 
+    
+    /* Texto */
+    color: #FFFFFF;                   /* Blanco para legibilidad sobre fondo saturado */
+    font-family: &quot;Segoe UI&quot;;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center; 
+}
+
+QPushButton:hover {
+    /* Verde un poco más intenso al pasar el mouse */
+    background-color: #059669;
+    /* Borde con tu nuevo azul Windows para indicar foco */
+    border: 1px solid #0078D4; 
+}
+
+QPushButton:pressed {
+    /* Verde más oscuro al hacer clic para feedback táctil */
+    background-color: #047857;
+    border: 1px solid #1A1A1A;
+}
+
+/* Cuando está deshabilitado */
+QPushButton:disabled {
+    /* Un verde grisáceo muy suave que indica inactividad */
+    background-color: #A7F3D0;
+    color: #F0FDF4;
+    border: 1px solid #E5E7EB;
+}</string>
+     </property>
+     <property name="text">
+      <string>Execute Experiment</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="frame_3">
+    <property name="geometry">
+     <rect>
+      <x>421</x>
+      <y>31</y>
+      <width>601</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Shadow::Raised</enum>
+    </property>
+    <widget class="QPushButton" name="clearGraph">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>41</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="mouseTracking">
+      <bool>true</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+    /* Fondo gris suave para indicar que es de solo lectura */
+    background-color: #E6EBF0; 
+    border: 1px solid #B0BCC7;
+    border-radius: 0px; /* Bordes rectos industriales */
+    
+    /* Texto con fuente técnica */
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;, &quot;Consolas&quot;; 
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    /* Rojo un poco más intenso al pasar el mouse */
+    background-color: #E6EBF0;
+    /* Borde azul acero para mantener la coherencia con el resto de la app */
+    border: 1px solid #7092BE;
+}
+
+QPushButton:pressed {
+    /* Rojo más oscuro al hacer clic */
+    background-color: #E6EBF0;
+    border: 1px solid #5F745B;
+}</string>
+     </property>
+     <property name="text">
+      <string>Clear</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>35</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuvxcvxv">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="menuOpen">
+     <property name="title">
+      <string>Open</string>
+     </property>
+     <addaction name="actionOpenData"/>
+     <addaction name="actionOpenConfiguration"/>
+    </widget>
+    <widget class="QMenu" name="menuSave">
+     <property name="title">
+      <string>Save</string>
+     </property>
+     <addaction name="actionSaveData"/>
+     <addaction name="actionSaveGraphic"/>
+     <addaction name="actionSaveConfiguration"/>
+    </widget>
+    <addaction name="menuOpen"/>
+    <addaction name="menuSave"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuExperiment">
+    <property name="title">
+     <string>Experiment</string>
+    </property>
+    <addaction name="actionLSV"/>
+    <addaction name="actionSWV"/>
+    <addaction name="actionCPE"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuGraph">
+    <property name="title">
+     <string>Graph</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuConfig">
+    <property name="title">
+     <string>Config</string>
+    </property>
+    <widget class="QMenu" name="menuSet_Experiment_Current_Scale">
+     <property name="title">
+      <string>Set Experiment Current Scale</string>
+     </property>
+     <addaction name="action100_mA"/>
+     <addaction name="action40_mA"/>
+     <addaction name="action1_mA"/>
+     <addaction name="action100_uA"/>
+     <addaction name="action10_uA"/>
+     <addaction name="action1_uA"/>
+     <addaction name="action100_nA"/>
+     <addaction name="action40_nA"/>
+    </widget>
+    <addaction name="menuSet_Experiment_Current_Scale"/>
+    <addaction name="actionScan_and_Connect"/>
+    <addaction name="actionReset_Instrument"/>
+    <addaction name="actionDisconnect"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+   </widget>
+   <addaction name="menuvxcvxv"/>
+   <addaction name="menuExperiment"/>
+   <addaction name="menuConfig"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuView"/>
+   <addaction name="menuGraph"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionLSV">
+   <property name="text">
+    <string>Linear/Cyclic Voltammetry</string>
+   </property>
+  </action>
+  <action name="actionSWV">
+   <property name="text">
+    <string>Square Wave Voltammetry</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionCPE">
+   <property name="text">
+    <string>Constant Potential Electrolysis</string>
+   </property>
+  </action>
+  <action name="action40_mA">
+   <property name="text">
+    <string>up to 40 mA</string>
+   </property>
+  </action>
+  <action name="action1_mA">
+   <property name="text">
+    <string>up to 1 mA</string>
+   </property>
+  </action>
+  <action name="action100_uA">
+   <property name="text">
+    <string>up to 100 uA</string>
+   </property>
+  </action>
+  <action name="action10_uA">
+   <property name="text">
+    <string>up to 10 uA</string>
+   </property>
+  </action>
+  <action name="action1_uA">
+   <property name="text">
+    <string>up to 1 uA</string>
+   </property>
+  </action>
+  <action name="action100_nA">
+   <property name="text">
+    <string>up to 100 nA</string>
+   </property>
+  </action>
+  <action name="action40_nA">
+   <property name="text">
+    <string>up to 40 nA</string>
+   </property>
+  </action>
+  <action name="actionSave_Graphic">
+   <property name="text">
+    <string>Save Graphic</string>
+   </property>
+  </action>
+  <action name="actionScan_and_Connect">
+   <property name="text">
+    <string>Scan and Connect</string>
+   </property>
+  </action>
+  <action name="actionDisconnect">
+   <property name="text">
+    <string>Disconnect</string>
+   </property>
+  </action>
+  <action name="action100_mA">
+   <property name="text">
+    <string>up to 100 mA</string>
+   </property>
+  </action>
+  <action name="actionSaveData">
+   <property name="text">
+    <string>Data</string>
+   </property>
+  </action>
+  <action name="actionSaveGraphic">
+   <property name="text">
+    <string>Graphic</string>
+   </property>
+  </action>
+  <action name="actionOpenData">
+   <property name="text">
+    <string>Data</string>
+   </property>
+  </action>
+  <action name="actionOpenConfiguration">
+   <property name="text">
+    <string>Configuration</string>
+   </property>
+  </action>
+  <action name="actionSaveConfiguration">
+   <property name="text">
+    <string>Configuration</string>
+   </property>
+  </action>
+  <action name="actionhgfh">
+   <property name="text">
+    <string>hgfh</string>
+   </property>
+  </action>
+  <action name="actionReset_Instrument">
+   <property name="text">
+    <string>Reset Instrument</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>pyqtgraph</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>precond_on_off</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>stir_on_off</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>140</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>95</x>
+     <y>170</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>precond_on_off</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>deposition_pot</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>131</x>
+     <y>124</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>271</x>
+     <y>211</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>precond_on_off</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>deposition_time</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>146</x>
+     <y>133</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>258</x>
+     <y>254</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>precond_on_off</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>precond_quiet_t</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>123</x>
+     <y>132</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>253</x>
+     <y>296</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>precond_on_off</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_13</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>159</x>
+     <y>134</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>166</x>
+     <y>206</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>precond_on_off</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_21</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>182</x>
+     <y>132</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>176</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>precond_on_off</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_22</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>74</x>
+     <y>131</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>82</x>
+     <y>285</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
