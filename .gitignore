@@ -1,3 +1,5 @@
 # .gitignore
 Trabajos Escritos/
 Software/Analog
+__pycache__/
+*.log
