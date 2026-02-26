@@ -14,7 +14,7 @@ class SerialScanner:
         puertos = serial.tools.list_ports.comports()
         
         for p in puertos:
-            print(f"Probando puerto: {p.device}...")
+            print(f"Trying Port {p.device} ...")
             try:
                 # Intentamos abrir el puerto con un timeout muy corto para no colgar la app
                 ser = serial.Serial(p.device, baud, timeout=1)
@@ -29,7 +29,7 @@ class SerialScanner:
                 respuesta = ser.readline().decode('utf-8').strip()
                 
                 if respuesta == id_esperado:
-                    print(f"¡Dispositivo encontrado en {p.device}!")
+                    print(f"¡Device found in {p.device}!")
                     ser.close()
                     return p.device # Devolvemos el nombre del puerto (ej. "COM3")
                 
@@ -133,7 +133,7 @@ class SerialWorker(QThread):
                         # Si la palabra recibida está en nuestro diccionario de comandos
                         if linea_completa in COMANDOS_SISTEMA:
                             # --- LÍNEA PARA DEPURACIÓN DE ESTADOS ---
-                            print(f"DEBUG ESP_STATE -> Comando: {linea_completa} ({COMANDOS_SISTEMA[linea_completa]})")
+                            #print(f"DEBUG ESP_STATE -> Comando: {linea_completa} ({COMANDOS_SISTEMA[linea_completa]})")
                             # Emitimos la clave (ej: "READY_ACK") y su descripción
                             self.comando_texto.emit(linea_completa, COMANDOS_SISTEMA[linea_completa])
                     except Exception as e:
@@ -150,9 +150,18 @@ class SerialWorker(QThread):
             self.running = False
 
     def registrar_respaldo(self, data):
-        """Guarda una copia de seguridad interna en formato texto plano"""
+        """Guarda los datos en modo append para el ensayo actual."""
         try:
             with open(self.backup_path, "a") as f:
                 f.write(f"[{data['timestamp']}] {data['tipo']}: {data['valores']}\n")
         except:
             pass
+
+
+    def resetear_archivo_respaldo(self):
+        """Sobreescribe el archivo para iniciar un nuevo registro limpio."""
+        try:
+            with open(self.backup_path, "w") as f:
+                f.write(f"--- Nuevo Ensayo Iniciado: {time.ctime()} ---\n")
+        except Exception as e:
+            print(f"Error al resetear backup: {e}")

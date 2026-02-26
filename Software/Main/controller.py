@@ -15,7 +15,19 @@ class PotentiostatController:
         self.comm_state = "IDLE" 
         self.retry_count = 0
         self.MAX_RETRIES = 2
-        self.processor = DataProcessor(window_size=5)
+
+        # Variable para almacenar el último valor de corriente procesado
+        self.last_current_ma = 0.0
+        self.last_time_s = 0.0
+
+        # Timer para actualizar los displays numéricos a velocidad humana (4Hz)
+        self.display_update_timer = QTimer()
+        self.display_update_timer.timeout.connect(self.refresh_numeric_displays)
+        self.display_update_timer.start(250) # 250ms es ideal para lectura visual
+
+
+        self.processor = DataProcessor(window_size=7)
+        #self.processor = DataProcessor(alpha=0.1)
         self.graph = PotentiostatGraph(self.view.graphicsView)
         self.current_experiment = "NO_EXPERIMENT"
         # Ganancia inicial por defecto (ejemplo 100 Ohms de la escala 40mA)
@@ -23,6 +35,17 @@ class PotentiostatController:
         self.total_experiment_time = 0
         self.progress_timer = QTimer()
         self.progress_timer.timeout.connect(self.update_progress_bar)
+        self.establecer_escala_inicial()
+
+
+    def establecer_escala_inicial(self):
+        """Configura la UI con los valores de la escala de 100mA por defecto."""
+        # Buscamos la configuración de 100mA en SCALES_CONFIG
+        info_defecto = SCALES_CONFIG.get("action40_mA") 
+        if info_defecto:
+            self.current_gain = float(info_defecto['multiplier']) 
+            self.view.CurrentScaleDisplay.setText(f"Scale Selected:   {info_defecto['name']}")
+            self.view.AmpGainDisplay.setText(f"Amplifier Gain: {info_defecto['gain_label']}")
 
 
     def iniciar_flujo_experimento(self):
@@ -35,41 +58,102 @@ class PotentiostatController:
         self.enviar_comando_uart("PREPARE") # Envía READY_UP\n
 
     def handle_system_command(self, clave, descripcion):
-        """Maneja las respuestas ASCII del ESP32 según el estado de comunicación"""
-        print(f"ESP32 -> {clave}: {descripcion}")
+        """
+        Maneja las respuestas ASCII del ESP32 gestionando la secuencia de:
+        Handshake -> Configuración de Ganancia -> Configuración de Experimento -> Ejecución.
+        """
+        print(f"ESP32 -> Command Sent: {clave} | Meaning - {descripcion}") 
 
+        # --- GESTIÓN DE ESTADO DE ELECTRODOS (Independiente del flujo de experimento) ---
+        if clave == "CELL1":
+            self.view.actualizar_ui_electrodos("ENGAGED") 
+        elif clave == "CELL0":
+            self.view.actualizar_ui_electrodos("DISENGAGED") 
+
+        # --- FLUJO DE CONTROL DE EXPERIMENTO ---
+        
+        # Paso 1: Recepción de READY_ACK tras enviar PREPARE (READY_UP)
         if clave == "READY_ACK" and self.comm_state == "WAITING_READY_ACK":
-            self.comm_state = "WAITING_PREPARING"
-            # Esperamos ahora el mensaje "PREPARING" que envía la ESP al cambiar de estado
+            self.comm_state = "WAITING_PREPARING" 
 
+        # Paso 2: ESP confirma que está lista para recibir configuración
         elif clave == "PREPARING" and self.comm_state == "WAITING_PREPARING":
-            self.comm_state = "WAITING_CONF_OK"
-            self.enviar_configuracion()
+            self.comm_state = "WAITING_GAIN_OK" 
+            self.enviar_configuracion_ganancia() 
 
+        # Paso 3: Validación de Ganancia (Ahora con comando específico CONF_GAIN_OK)
+        elif clave == "CONF_GAIN_OK" and self.comm_state == "WAITING_GAIN_OK":
+            # La ganancia se configuró en hardware, ahora esperamos el reporte GAINX
+            print("Gain Configured. Waiting for sync with hardware...")
+            pass 
+
+        elif clave.startswith("GAIN") and self.comm_state == "WAITING_GAIN_OK":
+            try:
+                # Extraemos el ID (ej: "GAIN2" -> 2)
+                id_recibido = int(clave.replace("GAIN", "")) 
+                self.sincronizar_escala_por_id(id_recibido) 
+                
+                # Una vez sincronizada la ganancia en la UI, pasamos a configurar la técnica
+                print(f"UI Synchronized with Hardware (GAIN ID: {id_recibido}). Sending configuration for experiment...") 
+                self.comm_state = "WAITING_CONF_OK" # Cambiamos de estado antes de enviar
+                self.enviar_configuracion() 
+            except ValueError:
+                print(f"Error processing gain ID: {clave}") 
+                self.reset_comm_flow() 
+
+        # Paso 4: Confirmación de parámetros de la técnica (CONF_OK se queda para esto)
         elif clave == "CONF_OK" and self.comm_state == "WAITING_CONF_OK":
-            self.comm_state = "WAITING_EXECUTING"
-            self.enviar_comando_uart("START") # Envía START_EXP\n
+            self.comm_state = "WAITING_EXECUTING" 
+            self.enviar_comando_uart("START") 
 
-        elif clave == "CONF_ERR" and self.comm_state == "WAITING_CONF_OK":
+        elif clave == "CONF_ERR":
+            # Manejo de error tanto en ganancia como en técnica
             if self.retry_count < self.MAX_RETRIES:
                 self.retry_count += 1
-                print(f"Error de config. Reintento {self.retry_count}...")
-                self.enviar_configuracion()
+                print(f"Configuration Error. Retry {self.retry_count}...") 
+                # Dependiendo de dónde falló, reintentamos uno u otro
+                if self.comm_state == "WAITING_GAIN_OK":
+                    self.enviar_configuracion_ganancia()
+                else:
+                    self.enviar_configuracion()
             else:
-                print("Fallo crítico de configuración. Abortando.")
-                self.reset_comm_flow()
+                print("Fallo crítico de configuración. Abortando flujo.") 
+                self.reset_comm_flow() 
 
+        # Paso 5: Ejecución y Finalización
         elif clave == "EXECUTING" and self.comm_state == "WAITING_EXECUTING":
-            print("Experimento en marcha.")
-            self.iniciar_logica_ui_experimento() # Inicia barra de progreso
+            self.iniciar_logica_ui_experimento() 
 
         elif clave == "FINISHED":
-            print("Experimento finalizado exitosamente.")
-            self.progress_timer.stop()
-            self.view.progressBar.setValue(100)
+            self.progress_timer.stop() 
+            self.view.progressBar.setValue(100) 
 
         elif clave == "WAITING":
             self.reset_comm_flow()
+
+
+    def enviar_configuracion_ganancia(self):
+        """Busca el ID de la escala actual y lo envía a la ESP32."""
+        # Iniciamos con el ID de la escala por defecto (action40_mA -> ID 1) 
+        gain_id = 1 
+        
+        for config in SCALES_CONFIG.values():
+            # Usamos round para evitar problemas de precisión con flotantes
+            if round(float(config['multiplier']), 2) == round(self.current_gain, 2):
+                gain_id = config['id_hardware']
+                break
+        
+        print(f"Sending Gain ID: {gain_id}")
+        self.worker.enviar_datos(f"SET_GAIN:{gain_id}\n")
+
+    def sincronizar_escala_por_id(self, id_hw):
+        """Actualiza la UI basándose en el ID de hardware confirmado por la ESP32."""
+        for info in SCALES_CONFIG.values():
+            if info['id_hardware'] == id_hw:
+                self.current_gain = float(info['multiplier']) 
+                self.view.CurrentScaleDisplay.setText(f"Scale Selected:   {info['name']}") 
+                self.view.AmpGainDisplay.setText(f"Amplifier Gain: {info['gain_label']}") 
+                break
 
     def enviar_configuracion(self):
         paquete = self.preparar_paquete_configuracion()
@@ -92,6 +176,7 @@ class PotentiostatController:
 
         self.view.progressBar.setValue(0)
         if self.worker:
+            self.worker.resetear_archivo_respaldo()
             self.worker.start_time = time.time() # Reset t0 para el gráfico
 
         self.progress_timer.start(100)
@@ -131,23 +216,38 @@ class PotentiostatController:
             t_total = t_precond + t_quiet + t_sweep
 
         elif self.current_experiment == "actionLSV":
-            t_quiet = params.get("lsv_quiet_time", 0.0)
-            scan_rate = params.get("lsv_scan_rate", 1.0)
+            # 1. Obtención de parámetros con conversión explícita a float
+            t_quiet = float(params.get("lsv_quiet_time", 0.0))
+            scan_rate = float(params.get("lsv_scan_rate", 1.0))
             segments = int(params.get("lsv_segments", 1))
             
-            # Puntos de control en orden
-            pts = [params.get("lsv_initial_pot", 0)]
-            sw1 = params.get("lsv_switch_pot1", 0)
-            sw2 = params.get("lsv_switch_pot2", 0)
-            final = params.get("lsv_final_pot", 0)
+            v_init = float(params.get("lsv_initial_pot", 0))
+            sw1 = float(params.get("lsv_switch_pot1", 0))
+            sw2 = float(params.get("lsv_switch_pot2", 0))
+            final = float(params.get("lsv_final_pot", 0))
             
             distancia_total = 0
-            for i in range(1, segments + 1):
-                # El último segmento va al final, los demás alternan sw1/sw2
-                target = final if i == segments else (sw1 if i % 2 != 0 else sw2)
-                distancia_total += abs(target - pts[-1])
-                pts.append(target)
+            posicion_actual = v_init
             
+            # 2. Replicamos la lógica de targets del firmware (C)
+            for i in range(1, segments + 1):
+                if i == segments:
+                    # El último segmento siempre termina en el potencial FINAL
+                    target = final
+                elif i == 1:
+                    # El primer segmento siempre va al Switch 1
+                    target = sw1
+                else:
+                    # Los intermedios oscilan entre Switch 2 (pares) y Switch 1 (impares)
+                    target = sw2 if i % 2 == 0 else sw1
+                
+                # Sumamos la distancia absoluta de este tramo
+                distancia_total += abs(target - posicion_actual)
+                
+                # El final de este segmento es el inicio del siguiente
+                posicion_actual = target 
+            
+            # 3. Cálculo del tiempo de barrido (t = d / v)
             t_sweep = distancia_total / scan_rate if scan_rate != 0 else 0
             t_total = t_quiet + t_sweep
 
@@ -178,8 +278,42 @@ class PotentiostatController:
             self.current_experiment = action_name
             
             # Cambiar físicamente la página en la interfaz
+            # --- UPDATE GRAPH LABELS ---
+            self.graph.set_experiment_mode(action_name)
             self.view.stackedWidget.setCurrentIndex(config["index"])
-            print(f"Experimento seleccionado: {config['nombre']}")
+            print(f"Selected Experiment: {config['nombre']}")
+
+    
+    def reset_instrumento(self):
+        """Envía RESET y comienza bucle de autoconexión."""
+        print("Enviando comando de RESET...")
+        self.enviar_comando_uart("RESET")
+        
+        # Resetear estados internos locales
+        self.reset_comm_flow()
+        self.view.actualizar_ui_conexion("DISCONNECTED", "Status: Resetting Device")
+        if self.worker:
+            self.worker.stop()
+        
+        # Esperar un momento a que el ESP32 inicie el reboot físico antes de buscarlo
+        QTimer.singleShot(4000, self.intentar_autoconexion_bucle)
+
+    def intentar_autoconexion_bucle(self):
+        """Intenta conectar recursivamente hasta tener éxito."""
+        self.view.actualizar_ui_conexion("SEARCHING", "Status: RECONNECTING")
+        
+        # Usamos el Scanner que ya tienes
+        puerto = SerialScanner.encontrar_potenciostato()
+        
+        if puerto:
+            print(f"Reconexión exitosa en {puerto}")
+            self.iniciar_comunicacion(puerto)
+            # El worker al iniciar disparará el evento de CONNECTED en la UI
+            self.view.actualizar_ui_conexion("CONNECTED", "Status: CONNECTED")
+        else:
+            print("Dispositivo no encontrado aún, reintentando en 2s...")
+            # Si no lo encuentra, vuelve a llamar a esta función en 2 segundos
+            QTimer.singleShot(2000, self.intentar_autoconexion_bucle)
 
     def auto_conectar(self):
         """Lógica de escaneo y conexión automática"""
@@ -190,6 +324,7 @@ class PotentiostatController:
         
         if puerto:
             self.iniciar_comunicacion(puerto)
+            #self.view.actualizar_ui_conexion("CONNECTED", "Status:   CONNECTED")
             self.view.actualizar_ui_conexion("CONNECTED", f"Status:   CONNECTED ({puerto})")
             return True
         else:
@@ -206,7 +341,10 @@ class PotentiostatController:
         self.worker.dato_procesado.connect(self.dispatch_data)
 
         self.worker.comando_texto.connect(self.handle_system_command) 
-        self.worker.start()
+
+        if self.worker:
+            self.worker.start()
+            QTimer.singleShot(1000, lambda: self.enviar_comando_uart("ELEC_STATUS"))
 
     def dispatch_data(self, data):
         tipo = data['tipo']
@@ -228,12 +366,33 @@ class PotentiostatController:
         # PROCESAMIENTO
         sample = self.processor.process_sample(t, v_applied, v_adc_diff, self.current_gain)
         
-        # Actualizar Interfaz
-        self.view.TimeDisplay.setText(f" Time:   {sample[0]:.2f} s")
-        self.view.CurrentDisplay.setText(f"Current: {sample[2]:.6f} mA")
+        # GUARDAR VALORES PARA EL TIMER DE UI
+        self.last_time_s = sample[0]
+        self.last_current_ma = sample[2]
         
         # GRAFICACIÓN
-        self.graph.update(self.processor.data_history)
+        self.graph.update(self.processor.data_history, self.current_experiment)
+
+    def refresh_numeric_displays(self):
+        """Actualiza los QLineEdit de tiempo y corriente a una velocidad legible."""
+        # 1. Actualizar Tiempo
+        self.view.TimeDisplay.setText(f" Time:   {self.last_time_s:.2f} s")
+
+        # 2. Lógica de Auto-escala para Corriente
+        abs_current = abs(self.last_current_ma)
+        
+        if abs_current < 0.001:  # nA
+            display_val = self.last_current_ma * 1e6
+            unit = "nA"
+        elif abs_current < 1.0:   # uA
+            display_val = self.last_current_ma * 1e3
+            unit = "µA"
+        else:                     # mA
+            display_val = self.last_current_ma
+            unit = "mA"
+
+        # 3. Actualizar Display de Corriente
+        self.view.CurrentDisplay.setText(f"Current:   {display_val:.3f} {unit}")
 
     def cambiar_escala(self, action_name):
         if action_name in SCALES_CONFIG:
@@ -241,7 +400,7 @@ class PotentiostatController:
             # 'multiplier' en tu protocol_defs.py representa la R de shunt (Ohms)
             self.current_gain = float(info['multiplier']) 
             
-            self.view.CurrentScaleDisplay.setText(f"Current Scale Selected: {info['name']}")
+            self.view.CurrentScaleDisplay.setText(f"Scale Selected: {info['name']}")
             self.view.AmpGainDisplay.setText(f"Amplifier Gain: {info['gain_label']}")
 
     def obtener_parametros_activos(self):
@@ -303,47 +462,41 @@ class PotentiostatController:
             except Exception as e:
                 print(f"Error saving Image: {e}")
 
-
     def guardar_configuracion_ui(self):
         """
-        Guarda la configuración solo del experimento activo y filtra parámetros 
-        deshabilitados (como los de acondicionamiento).
+        Guarda la configuración del experimento activo, incluyendo la escala actual,
+        y filtra parámetros deshabilitados.
         """
         if self.current_experiment == "NO_EXPERIMENT":
-            print("No hay un experimento seleccionado para guardar.")
+            QtWidgets.QMessageBox.warning(self.view, "Guardar", "No hay un experimento seleccionado.")
             return
 
         exp_info = EXPERIMENT_PAGES[self.current_experiment]
+        
+        # --- NUEVO: Buscar el ID de la escala actual para guardarlo ---
+        current_scale_id = 1  # Valor por defecto (40mA)
+        for scale_info in SCALES_CONFIG.values():
+            if round(float(scale_info['multiplier']), 2) == round(self.current_gain, 2):
+                current_scale_id = scale_info['id_hardware']
+                break
+
         config_to_save = {
             "experiment_id": self.current_experiment,
             "experiment_name": exp_info["nombre"],
             "page_index": exp_info["index"],
+            "selected_scale_id": current_scale_id, # Guardamos la escala
             "parameters": {}
         }
 
         page_widget = self.view.stackedWidget.widget(exp_info["index"])
-        
         from PyQt6.QtWidgets import QSpinBox, QDoubleSpinBox, QCheckBox, QLineEdit
-        
-        # Obtenemos todos los widgets de la página
+
         for widget in page_widget.findChildren((QSpinBox, QDoubleSpinBox, QCheckBox, QLineEdit)):
             name = widget.objectName()
-            
-            # 1. FILTRO DE WIDGETS INTERNOS: 
-            # Evitamos guardar el 'qt_spinbox_lineedit' que es un hijo interno de los SpinBoxes
-            if "qt_spinbox_lineedit" in name:
-                continue
-
-            # 2. FILTRO DE SOLO LECTURA:
-            if hasattr(widget, 'isReadOnly') and widget.isReadOnly():
-                continue
-
-            # 3. FILTRO DE PARÁMETROS HABILITADOS (Tu requerimiento principal):
-            # Si el widget está deshabilitado en la UI (porque el checkbox no está marcado), no se guarda.
-            if not widget.isEnabled():
-                continue
+            if "qt_spinbox_lineedit" in name: continue
+            if hasattr(widget, 'isReadOnly') and widget.isReadOnly(): continue
+            if not widget.isEnabled(): continue
                 
-            # 4. EXTRACCIÓN DE DATOS:
             if isinstance(widget, (QSpinBox, QDoubleSpinBox)):
                 config_to_save["parameters"][name] = widget.value()
             elif isinstance(widget, QCheckBox):
@@ -351,52 +504,52 @@ class PotentiostatController:
             elif isinstance(widget, QLineEdit):
                 config_to_save["parameters"][name] = widget.text()
 
-        # Guardado de archivo
-        from PyQt6.QtWidgets import QFileDialog
-        import json
-
-        file_path, _ = QFileDialog.getSaveFileName(
+        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
             self.view, f"Save Configuration - {exp_info['nombre']}", "", "Config Files (*.json)"
         )
 
         if file_path:
             try:
+                import json
                 with open(file_path, 'w') as f:
                     json.dump(config_to_save, f, indent=4)
-                print(f"Configuración guardada (parámetros activos solamente).")
+                QtWidgets.QMessageBox.information(self.view, "Success", "Configuration Saved Succesfully.")
+                print("Success", "Configuration Saved Succesfully.")
             except Exception as e:
-                print(f"Error al guardar: {e}")
+                QtWidgets.QMessageBox.critical(self.view, "Error", f"Unable to save configuration: {e}")
+                print(f"Save Error. Unable to save configuration: {e}")
+
 
     def cargar_configuracion_ui(self):
-        """Lee un archivo .json y restaura los valores y el tipo de experimento"""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self.view, "Cargar Configuración", "", "Config Files (*.json)"
+        """Lee un archivo .json, restaura los valores, la técnica y la escala."""
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self.view, "Load Configuration", "", "Config Files (*.json)"
         )
 
-        if not file_path:
-            return
+        if not file_path: return
 
         try:
+            import json
             with open(file_path, 'r') as f:
                 config = json.load(f)
 
-            # 1. Recuperar el ID del experimento (ej: "actionSWV")
-            # Usamos get con un fallback por si el JSON es de una versión vieja
+            # 1. Recuperar el ID del experimento
             exp_id = config.get("experiment_id")
-            
+            exp_name = config.get("experiment_name")
             if exp_id and exp_id in EXPERIMENT_PAGES:
-                # Usamos nuestra función existente para cambiar la pestaña y el ID interno
                 self.seleccionar_experimento(exp_id)
             elif "page_index" in config:
-                # Fallback: solo cambiar la página si no hay ID
                 self.view.stackedWidget.setCurrentIndex(config["page_index"])
+
+            # --- NUEVO: Restaurar la escala seleccionada automáticamente ---
+            if "selected_scale_id" in config:
+                scale_id = config["selected_scale_id"]
+                self.sincronizar_escala_por_id(scale_id)
 
             # 2. Restaurar parámetros de los widgets
             params = config.get("parameters", {})
             for name, value in params.items():
-                # Corregido: usamos la instancia del widget directamente o QtWidgets.QWidget
                 widget = self.view.findChild(QtWidgets.QWidget, name)
-                
                 if widget:
                     if isinstance(widget, (QSpinBox, QDoubleSpinBox)):
                         widget.setValue(value)
@@ -405,11 +558,12 @@ class PotentiostatController:
                     elif isinstance(widget, QLineEdit):
                         widget.setText(str(value))
             
-            print(f"Configuración de {exp_id} cargada exitosamente.")
+            QtWidgets.QMessageBox.information(self.view, "Load", f"Configuration for '{exp_name}' loaded with success.")
+            print(f"Configuration for '{exp_name}' loaded succesfully")
             
         except Exception as e:
-            # Ahora el error mostrará detalles más precisos si falta algo
-            print(f"Error al cargar configuración: {e}")
+            QtWidgets.QMessageBox.critical(self.view, "Load Error", f"Detail: {e}")
+            print(f"Load Error. Detail: {e}")
 
 
     def preparar_paquete_configuracion(self):
@@ -488,7 +642,7 @@ class PotentiostatController:
             if self.worker and self.worker.isRunning():
                 # Enviamos el comando a través del worker
                 self.worker.enviar_datos(comando_str)
-                print(f"UART Tx -> {comando_str.strip()}")
+                print(f"Python Command Sent -> {comando_str.strip()}")
             else:
                 print("Error: No hay una conexión serie activa.")
         else:
@@ -499,4 +653,21 @@ class PotentiostatController:
         self.processor.clear_data()
         self.graph.clear_graph()
         self.view.progressBar.setValue(0)
-        print("Gráfico e historial de datos reiniciados.")
+        print("Graphic and Data Historial Reset.")
+
+    
+    def tiene_datos_pendientes(self):
+        """Verifica si hay datos en el historial o parámetros modificados."""
+        # Comprobar si hay datos capturados en el procesador
+        hay_datos = len(self.processor.data_history) > 0
+        
+        # Comprobar si el experimento actual es distinto al estado inicial
+        hay_config = self.current_experiment != "NO_EXPERIMENT"
+        
+        return hay_datos, hay_config
+
+    def cerrar_recursos(self):
+        """Detiene hilos y cierra puertos antes de salir."""
+        if self.worker:
+            self.worker.stop()
+            self.worker.wait()

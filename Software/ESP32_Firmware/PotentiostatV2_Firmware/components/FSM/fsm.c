@@ -48,83 +48,110 @@ static void process_line_FSM (potentiostat_fsm_t *fsm)
 {
     char *cmd = fsm->line_buffer;
 
-    // COMANDO PRIORITARIO: ABORT (Funciona siempre)
-    if (strcmp(cmd, "ABORT") == 0) {
+    // COMANDO PRIORITARIO: ABORT
+    if (strcmp(cmd, CMD_ABORT) == 0) {
         transition_state_FSM(fsm, STATE_WAITING);
-        // Función externa para detener hardware
         ABORT_FLAG = 1;
-        // stop_all_hardware(); 
-        uart_write_bytes(UART_NUM_0, "STOP_OK\n", 8);
+        uart_write_bytes(UART_NUM_0, MSG_STOP_OK, strlen(MSG_STOP_OK));
         return;
     }
 
     switch (fsm->current_state) {
         case STATE_WAITING:
-            if (strcmp(cmd, "READY_UP") == 0) {
+            if (strcmp(cmd, CMD_READY_UP) == 0) {
                 transition_state_FSM(fsm, STATE_PREPARING);
-                uart_write_bytes(UART_NUM_0, "READY_ACK\n", 10);
-                uart_write_bytes(UART_NUM_0, "PREPARING\n", 10);
-            } else if (strcmp(cmd, "?ID") == 0) {
-                const char* id = "Potenciostato V2.0\n";
-                uart_write_bytes(UART_NUM_0, id, strlen(id));
+                uart_write_bytes(UART_NUM_0, MSG_READY_ACK, strlen(MSG_READY_ACK));
+                uart_write_bytes(UART_NUM_0, MSG_PREPARING, strlen(MSG_PREPARING));
+            } 
+            else if (strcmp(cmd, CMD_GET_ID) == 0) {
+                uart_write_bytes(UART_NUM_0, MSG_ID_STR, strlen(MSG_ID_STR));
+            } 
+            else if (strcmp(cmd, CMD_RESET) == 0) {
+                uart_write_bytes(UART_NUM_0, MSG_RESETTING, strlen(MSG_RESETTING));
+                uart_wait_tx_done(UART_NUM_0, pdMS_TO_TICKS(100));
+                esp_restart();
+            } 
+            else if (strcmp(cmd, CMD_E_STATUS) == 0) {
+                // Implementar lógica de estado de electrodos
+                if (get_Electrodes_State())
+                    uart_write_bytes(UART_NUM_0, MSG_CELL_CONNECTED, strlen(MSG_CELL_CONNECTED));
+                else
+                    uart_write_bytes(UART_NUM_0, MSG_CELL_DISCONNECTED, strlen(MSG_CELL_DISCONNECTED));
             }
             break;
 
         case STATE_PREPARING:
-            if (strncmp(cmd, "CONF_SWV:", 9) == 0) 
+            // Verificamos configuración SWV
+            if (strncmp(cmd, CMD_CONF_SWV, strlen(CMD_CONF_SWV)) == 0) 
             {
-                fsm->current_experiment = EXP_SWV; // La FSM ahora "sabe" qué ejecutará
-                // Parsing manual con sscanf (C estándar)
-                // Usamos punteros a tus variables globales de experimento
-                int res = 11;
-
-                sscanf(cmd + 9, "%hd, %hd, %hu, %hu, %hu, %hu, %hhd, %hhd, %hd, %hu, %hu",                                                      
+                fsm->current_experiment = EXP_SWV;
+                // Sumamos el largo del comando para saltar el prefijo en sscanf
+                int res = sscanf(cmd + strlen(CMD_CONF_SWV), "%hd, %hd, %hu, %hu, %hu, %hu, %hhd, %hhd, %hd, %hu, %hu",                                                      
                                  &experiment_config.SWV.initial_pot_mv, &experiment_config.SWV.final_pot_mv, 
                                  &experiment_config.SWV.freq_hz, &experiment_config.SWV.pulse_amplitude_mv, 
                                  &experiment_config.SWV.step_pot_mv, &experiment_config.SWV.quiet_time_s,
                                  &precond_config.precond_on_off,
                                  &precond_config.stir_on_off, &precond_config.deposition_pot_mv, &precond_config.deposition_time_s, &precond_config.quiet_time_s);
 
-                if (res == 11) 
-                {
-                    uart_write_bytes(UART_NUM_0, "CONF_OK\n", 8);
-                } 
-                else 
-                    uart_write_bytes(UART_NUM_0, "CONF_ERR\n", 9);
+                if (res == 11) {
+                    uart_write_bytes(UART_NUM_0, MSG_CONF_OK, strlen(MSG_CONF_OK));
+                } else {
+                    uart_write_bytes(UART_NUM_0, MSG_CONF_ERR, strlen(MSG_CONF_ERR));
+                }
             }
-            else if (strncmp(cmd, "CONF_LSV:", 8) == 0) 
+            // Verificamos configuración LSV
+            else if (strncmp(cmd, CMD_CONF_LSV, strlen(CMD_CONF_LSV)) == 0) 
             {
                 fsm->current_experiment = EXP_LSV;
-                // Parsing manual con sscanf (C estándar)
-                // Usamos punteros a tus variables globales de experimento
-                int res = 6;
-                sscanf(cmd + 9, "%hd, %hd, %hd, %hd, %hu, %hu, %hu",                                                      
+                int res = sscanf(cmd + strlen(CMD_CONF_LSV), "%hd, %hd, %hd, %hd, %hu, %hu, %hu",                                                      
                                  &experiment_config.LSV.initial_pot_mv, &experiment_config.LSV.switching_pot1_mv,                                       // FALTA VER EL PREACONDICIONAMIENTO QUE
                                  &experiment_config.LSV.switching_pot2_mv, &experiment_config.LSV.final_pot_mv,                                         // QUE SE DEBE TENER EN CUENTA ACA
                                  &experiment_config.LSV.segments, &experiment_config.LSV.scan_rate_mv_s, &experiment_config.LSV.quiet_time_s);
                                  
-                if (res == 6) 
-                {
-                    uart_write_bytes(UART_NUM_0, "CONF_OK\n", 8);
-                } 
-                else 
-                    uart_write_bytes(UART_NUM_0, "CONF_ERR\n", 9);
+                if (res == 7) {
+                    uart_write_bytes(UART_NUM_0, MSG_CONF_OK, strlen(MSG_CONF_OK));
+                } else {
+                    uart_write_bytes(UART_NUM_0, MSG_CONF_ERR, strlen(MSG_CONF_ERR));
+                }
             }
-            //else if (strncmp(cmd, "CONF_CPE:", 8) == 0) 
-            else if (strcmp(cmd, "START_EXP") == 0) 
+            else if (strncmp(cmd, CMD_CONF_GAIN, strlen(CMD_CONF_GAIN)) == 0) 
             {
-                uart_write_bytes(UART_NUM_0, "EXECUTING\n", 10);
+                int gain_id = -1;
+
+                int res = sscanf(cmd + strlen(CMD_CONF_GAIN), "%d", &gain_id);
+
+                // Validamos que se leyó 1 parámetro y que está en el rango del MAX4617 (0-7)
+                if (res == 1 && gain_id >= 0 && gain_id <= 7) 
+                {
+                    MAX4617_Set_Gain(gain_id);
+
+                    uart_write_bytes(UART_NUM_0, MSG_CONF_GAIN_OK, strlen(MSG_CONF_GAIN_OK));
+
+                    char sync_msg[16];
+                    int len = snprintf(sync_msg, sizeof(sync_msg), "GAIN%d\n", MAX4617_get_gain());
+                    uart_write_bytes(UART_NUM_0, sync_msg, len);
+                    
+                    // Aseguramos que los bytes salgan antes de cualquier otra operación
+                    uart_wait_tx_done(UART_NUM_0, pdMS_TO_TICKS(50));
+                } else {
+                    // Si el formato es incorrecto o el ID es inválido (ej. SET_GAIN:9)
+                    uart_write_bytes(UART_NUM_0, MSG_CONF_ERR, strlen(MSG_CONF_ERR));
+                }
+            }
+            //else if (strncmp(cmd, "CONF_CPE:", 8) == 0){}
+            else if (strcmp(cmd, CMD_START_EXP) == 0) 
+            {
+                uart_write_bytes(UART_NUM_0, MSG_EXECUTING, strlen(MSG_EXECUTING));
                 transition_state_FSM(fsm, STATE_EXECUTING);
-                // Iniciar tarea de muestreo en Core 1
                 xTaskNotifyGive(xTaskExpControlHandle);
             }
             break;
 
         case STATE_EXECUTING:
-            // En ejecución ignoramos todo excepto ABORT (ya manejado arriba)
             break;
     }
 }
+
 
 /********************************************************************************/
 /*                           FSM Execution Functions                            */

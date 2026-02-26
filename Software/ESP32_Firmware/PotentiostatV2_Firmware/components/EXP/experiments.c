@@ -62,6 +62,7 @@ void VOLT_EXP_START (void)
         esp_rom_delay_us(10000); // Make sure WE circuit is connected before control voltage applied
         gpio_set_level(MAX4737_CE_EN, HIGH);
         ELECTRODES_STATE = CONNECTED;
+        uart_write_bytes(UART_NUM_0, MSG_CELL_CONNECTED, strlen(MSG_CELL_CONNECTED));
     }
 }
 
@@ -79,6 +80,7 @@ void VOLT_EXP_STOP (void)
         // Make sure WE is last to disconnect
 	    gpio_set_level(MAX4737_WE_EN, LOW);
         ELECTRODES_STATE = DISCONNECTED;
+        uart_write_bytes(UART_NUM_0, MSG_CELL_DISCONNECTED, strlen(MSG_CELL_DISCONNECTED));
     }
 }
 
@@ -155,12 +157,10 @@ uint8_t execute_SWV_experiment(SWV_config *config)
     uint8_t direction = 1;
     uint32_t prop_delay_us = 0;
     int16_t dacindex = config->initial_pot_mv; 
-    const uint8_t header[2] = {0xAA, 0xBB};
-    const uint8_t end_byte[1] = {0x0A};
 
+    swv_packet_t pkt;
     float forward = 0;
     float reverse = 0;
-    swv_packet_t data;
 
     if (config->initial_pot_mv < config->final_pot_mv)
         direction = 1;
@@ -241,15 +241,15 @@ uint8_t execute_SWV_experiment(SWV_config *config)
         // ============================
         // PROCESAMIENTO (FUERA DEL TIMING CRÍTICO)
         // ============================
-        data.lastindex = dacindex;
-        data.forward = forward;
-        data.reverse = reverse;
+        pkt.lastindex = dacindex;
+        pkt.forward = forward;
+        pkt.reverse = reverse;
         
         // El tiempo que tarden estas funciones es absorbido por el inicio 
         // de la próxima iteración porque t_target no se resetea.
-        uart_write_bytes(UART_NUM_0, header, 2);
-        uart_write_bytes(UART_NUM_0, &data, 10);
-        uart_write_bytes(UART_NUM_0, end_byte, 1);
+        uart_write_bytes(UART_NUM_0, HEADER_SWV, HEADER_SWV_SIZE);
+        uart_write_bytes(UART_NUM_0, &pkt, sizeof(pkt));
+        uart_write_bytes(UART_NUM_0, PACKET_TAIL, TAIL_SIZE);
 
         if (direction == 1) 
             dacindex += config->step_pot_mv;
@@ -263,13 +263,13 @@ uint8_t execute_SWV_experiment(SWV_config *config)
 // Finalización normal
     VOLT_EXP_STOP();
     ADS125X_STANDBY_HAL();
-    uart_write_bytes(UART_NUM_0, "FINISHED\n", 9);
+    uart_write_bytes(UART_NUM_0, MSG_FINISHED, strlen(MSG_FINISHED));
     return 0;
 
 abort_swv:
     VOLT_EXP_STOP();
     ADS125X_STANDBY_HAL();
-    uart_write_bytes(UART_NUM_0, "FINISHED\n", 9);
+    uart_write_bytes(UART_NUM_0, MSG_FINISHED, strlen(MSG_FINISHED));
     ABORT_FLAG = 0;
     return 1;
 }
@@ -396,8 +396,6 @@ uint8_t execute_LSV_CV_experiment(LSV_CV_config *config)
     const float res = 0.5f;
     float current_v = (float)config->initial_pot_mv;
     
-    const uint8_t head[2] = {0xCC, 0xDD};
-    const uint8_t tail[1] = {0x0A};
     lsv_cv_packet_t pkt;
 
     // 1. CONSTRUCCIÓN DE LA RUTA SEGÚN EL MANUAL
@@ -455,10 +453,10 @@ uint8_t execute_LSV_CV_experiment(LSV_CV_config *config)
             pkt.voltage_index_mv = (int16_t)roundf(current_v);
             pkt.voltage_meas = ADS125X_READVOLT_HAL();
             
-            uart_write_bytes(UART_NUM_0, head, 2);
-            uart_write_bytes(UART_NUM_0, &pkt, sizeof(lsv_cv_packet_t));
-            uart_write_bytes(UART_NUM_0, tail, 1);
-
+            uart_write_bytes(UART_NUM_0, HEADER_LSV, HEADER_LSV_SIZE);
+            uart_write_bytes(UART_NUM_0, &pkt, sizeof(pkt));
+            uart_write_bytes(UART_NUM_0, PACKET_TAIL, TAIL_SIZE);
+            
             int64_t elapsed = esp_timer_get_time() - t_start;
             int64_t to_wait = (int64_t)step_delay_us - elapsed;
             if (to_wait > 0) esp_rom_delay_us((uint32_t)to_wait);
@@ -466,6 +464,111 @@ uint8_t execute_LSV_CV_experiment(LSV_CV_config *config)
             if (step < n_steps) current_v += (dir * res);
         }
         current_v = target_v; // Asegurar precisión al final de cada rampa
+    }
+
+    VOLT_EXP_STOP();
+    ADS125X_STANDBY_HAL();
+    uart_write_bytes(UART_NUM_0, MSG_FINISHED, strlen(MSG_FINISHED));
+    return 0;
+
+abort_experiment:
+    VOLT_EXP_STOP();
+    ADS125X_STANDBY_HAL();
+    uart_write_bytes(UART_NUM_0, MSG_FINISHED, strlen(MSG_FINISHED));
+    ABORT_FLAG = 0;
+    return 1;
+}
+
+
+/*uint8_t execute_LSV_CV_experiment(LSV_CV_config *config)
+{
+    const float res = 0.5f;
+    float current_v = (float)config->initial_pot_mv;
+    const uint8_t head[2] = {0xCC, 0xDD};
+    const uint8_t tail[1] = {0x0A};
+    lsv_cv_packet_t pkt;
+
+    // 1. CONSTRUCCIÓN DE LA RUTA
+    float targets[config->segments];
+    for (int i = 0; i < config->segments; i++) {
+        int seg_num = i + 1;
+        if (seg_num == config->segments) targets[i] = (float)config->final_pot_mv;
+        else if (seg_num == 1) targets[i] = (float)config->switching_pot1_mv;
+        else targets[i] = (seg_num % 2 == 0) ? (float)config->switching_pot2_mv : (float)config->switching_pot1_mv;
+    }
+
+    // 2. CONFIGURACIÓN DE PROMEDIO DINÁMICO (Optimizado para 30 kSPS)
+    uint32_t step_delay_us = (uint32_t)((res * 1000000.0f) / config->scan_rate_mv_s);
+    
+    // A 30kSPS, cada conversión tarda ~33.3us. Usamos 34us como margen seguro.
+    const uint32_t adc_conv_time_us = 34; 
+    
+    // Reservamos 600us para DAC, UART (a 921600 baudios) y overhead del procesador
+    const uint32_t overhead_us = 600;
+    
+    uint32_t num_averages = 1;
+    if (step_delay_us > overhead_us) {
+        num_averages = (step_delay_us - overhead_us) / adc_conv_time_us;
+    }
+
+    // Límites de seguridad para el promedio
+    if (num_averages < 1) num_averages = 1;
+    if (num_averages > 256) num_averages = 256; // Evita latencia excesiva y desborde
+
+    ADS125X_WAKEUP_HAL();
+    VOLT_EXP_START();
+    MAX5217_DAC_WRITE_HAL_MV((int16_t)roundf(current_v));
+
+    if (config->quiet_time_s > 0) {
+        int64_t q_end = esp_timer_get_time() + (config->quiet_time_s * 1000000LL);
+        while (esp_timer_get_time() < q_end) {
+            if (ABORT_FLAG) goto abort_experiment;
+            vTaskDelay(pdMS_TO_TICKS(5));
+        }
+    }
+
+    // 3. EJECUCIÓN
+    for (int s = 0; s < config->segments; s++) 
+    {
+        float target_v = targets[s];
+        int8_t dir = (target_v > current_v) ? 1 : -1;
+        uint32_t n_steps = (uint32_t)roundf(fabsf(target_v - current_v) / res);
+
+        for (uint32_t step = 0; step <= n_steps; step++) 
+        {
+            if (ABORT_FLAG) goto abort_experiment;
+            int64_t t_start = esp_timer_get_time();
+
+            // 1. Actualizar DAC
+            MAX5217_DAC_WRITE_HAL_MV((int16_t)roundf(current_v));
+
+            // 2. Muestreo con Promedio Dinámico
+            double sum_adc = 0;
+            for(uint32_t a = 0; a < num_averages; a++) {
+                ADS125X_WAIT_DYDR_HAL(); 
+                sum_adc += ADS125X_READVOLT_HAL();
+                // Check de aborto rápido dentro del promedio
+                if (ABORT_FLAG) goto abort_experiment;
+            }
+            
+            pkt.voltage_index_mv = (int16_t)roundf(current_v);
+            pkt.voltage_meas = (float)(sum_adc / num_averages);
+            
+            // 3. Envío de datos
+            uart_write_bytes(UART_NUM_0, head, 2);
+            uart_write_bytes(UART_NUM_0, &pkt, sizeof(lsv_cv_packet_t));
+            uart_write_bytes(UART_NUM_0, tail, 1);
+
+            // 4. Sincronización de tiempo de paso
+            int64_t elapsed = esp_timer_get_time() - t_start;
+            int64_t to_wait = (int64_t)step_delay_us - elapsed;
+            if (to_wait > 0) {
+                esp_rom_delay_us((uint32_t)to_wait);
+            }
+
+            if (step < n_steps) current_v += (dir * res);
+        }
+        current_v = target_v;
     }
 
     VOLT_EXP_STOP();
@@ -479,7 +582,7 @@ abort_experiment:
     uart_write_bytes(UART_NUM_0, "FINISHED\n", 9);
     ABORT_FLAG = 0;
     return 1;
-}
+}*/
 
 
 uint8_t execute_PA_experiment(PA_config *config)

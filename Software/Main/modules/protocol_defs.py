@@ -71,12 +71,12 @@ EXPERIMENT_CONFIG = {
         "size": 10,
         "suffix_size": 1 # Agregamos una marca para el byte de fin
     },
-    b'\x11\xaa': {
+    b'\xab\xab': {
         "nombre": "Chronoamperometry",
         "format": "<ff",    # Time_Internal, Current
         "size": 8
     },
-    b'\x33\xcc': {
+    b'\xcd\xcd': {
         "nombre": "Potentiometry",
         "format": "<f",     # Voltage_Only
         "size": 4
@@ -92,17 +92,30 @@ EXPERIMENT_PAGES = {
 
 
 COMANDOS_SISTEMA = {                                # VER SI ES NECESARIO PONERLES EL \n PARA INTERPRETARLOS COMO COMANDOS
-    "OK": "Operación Exitosa",                      # QUE VIENEN DESDE LA ESP
-    "ER": "Error de Hardware",
-    "ID": "Potenciostato V2.0",
-    "STOP_OK": "Emergencia Activada",
-    "CONF_OK":"Configuración Correcta",
-    "CONF_ERR":"Error de Configuración",
-    "READY_ACK":"Orden de Alistarse Recibida",
-    "PREPARING":"ESP esperando Configuración",
-    "EXECUTING":"Ejecutando ensayo",
-    "FINISHED":"Ensayo Finalizado",
-    "WAITING":"Estado de Espera Normal"
+    "OK":           "ESP: Operation Succesful",                      # QUE VIENEN DESDE LA ESP
+    "ER":           "ESP: Hardware Error",
+    "ID":           "Potenciostato V2.0",
+    "STOP_OK":      "ESP: Abortion Activated",
+    "CONF_OK":      "ESP: Exp Config OK",
+    "READY_ACK":    "ESP: Ready_UP Order Received",
+    "CONF_GAIN_OK": "ESP: Gain Configuration OK",
+    "CONF_ERR":     "ESP: Configuration Error",
+    "WAITING":      "ESP: Waiting State",
+    "PREPARING":    "ESP: Awaiting Configuration",
+    "EXECUTING":    "ESP: Experiment Executing",
+    "FINISHED":     "ESP: Experiment Finished",
+    "RESETTING":    "ESP: Device Resetting",
+    "CELL1":        "CELL ENGAGED",
+    "CELL0":        "CELL DISENGAGED",
+    "GAIN0":        "GAIN1. Scale 100mA",
+    "GAIN1":        "GAIN100. Scale 40mA",
+    "GAIN2":        "GAIN3k. Scale 1mA",
+    "GAIN3":        "GAIN30k. Scale 100uA",
+    "GAIN4":        "GAIN300k. Scale 10uA",
+    "GAIN5":        "GAIN3M. Scale 1uA",
+    "GAIN6":        "GAIN30M. Scale 100nA",
+    "GAIN7":        "GAIN100M. Scale 40nA"
+
 }
 
 COMANDOS_UART = {
@@ -112,8 +125,10 @@ COMANDOS_UART = {
     "START":"START_EXP\n",
     "STOP": "ABORT\n",           # Prioritario
     "RESET":"RST\n",
-    "ENGAGE_CELL": "CELL:1\n",   # Conectar electrodos
-    "DISENGAGE_CELL": "CELL:0\n" # Desconectar electrodos
+    "ELEC_STATUS":"E_STATUS\n",
+    "SET_GAIN": "SET_GAIN:"
+    #"ENGAGE_CELL": "CELL1\n",   # Conectar electrodos
+    #"DISENGAGE_CELL": "CELL0\n", # Desconectar electrodos
 }
 
 PAQUETES_CONFIG = {
@@ -123,10 +138,8 @@ PAQUETES_CONFIG = {
             # Posición 1 a 6: SWV Core
             "swv_initial_pot", "swv_final_pot", "swv_pulse_freq", 
             "swv_pulse_amplitude", "swv_step_pot", "swv_quiet_t",
-
-            # Posición 7: FLAG ACTIVACIÓN (El que pediste)
+            # Posición 7: FLAG ACTIVACIÓN
             "precond_on_off", 
-
             # Posición 8 a 11: Parámetros Precond
             "stir_on_off", "deposition_pot", "deposition_time", "precond_quiet_t"
         ]
@@ -136,8 +149,9 @@ PAQUETES_CONFIG = {
         "params": [
             "lsv_initial_pot", "lsv_switch_pot1", "lsv_switch_pot2", 
             "lsv_final_pot","lsv_segments", "lsv_scan_rate", "lsv_quiet_time"
-        ]#,
-        #"params_precond": None # La CV podría no tenerlo o tener otros
+            #,
+            # #"params_precond": None # La CV podría no tenerlo o tener otros
+        ]
     }
 
 }

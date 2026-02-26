@@ -13,6 +13,9 @@
 MIT License
 */
 
+#ifndef EXPERIMENTS_H
+#define EXPERIMENTS_H
+
 #include <math.h>
 // Own Libraries
 #include "gpio_config.h"
@@ -26,6 +29,19 @@ MIT License
 #define     OFF         0
 
 #define ESP_CPU_FREQ_HZ  ((double)CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ * 1000000.0)
+
+// Definidos como secuencias de bytes
+#define HEADER_SWV      (uint8_t[]){0xAA, 0xBB}
+#define HEADER_LSV      (uint8_t[]){0xCC, 0xDD}
+#define HEADER_CPE       (uint8_t[]){0xEE, 0xFF}
+
+/* --- TAIL (Macro) --- */
+#define PACKET_TAIL     (uint8_t[]){0x0A}
+
+/* --- TAMAÑOS (Opcional, pero útil) --- */
+#define HEADER_SWV_SIZE  2
+#define HEADER_LSV_SIZE  2
+#define TAIL_SIZE        1
 
 
 
@@ -97,3 +113,6 @@ uint8_t     execute_SWV_experiment      (SWV_config *config);
 uint8_t     execute_LSV_CV_experiment   (LSV_CV_config *config);
 uint8_t     execute_PA_experiment       (PA_config *config);
 uint8_t     execute_CPE_experiment      (CPE_config *config);
+
+
+#endif

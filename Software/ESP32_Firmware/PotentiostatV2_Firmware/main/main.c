@@ -11,7 +11,6 @@
 #include "gpio_config.h"
 #include "ads1255.h"
 #include "max5217.h"
-#include "muxes.h"
 #include "general.h"
 #include "fsm.h"
 
@@ -325,7 +324,7 @@ void experiment_exec_task(void *pvParameters)
         // Forzamos el retorno al estado WAITING para permitir nuevos comandos.
         main_fsm->current_experiment = EXP_NONE;
         transition_state_FSM(main_fsm, STATE_WAITING);
-        uart_write_bytes(UART_NUM_0, "WAITING\n", 8);
+        uart_write_bytes(UART_NUM_0, MSG_WAITING, strlen(MSG_WAITING));
 
         printf("Core 1: Experimento finalizado. Retornando a WAITING\n");
     }

@@ -152,7 +152,7 @@ QProgressBar::chunk {
      <rect>
       <x>0</x>
       <y>2</y>
-      <width>417</width>
+      <width>421</width>
       <height>605</height>
      </rect>
     </property>
@@ -167,7 +167,7 @@ QStackedWidget QLabel {
 </string>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="EmptyPage"/>
     <widget class="QWidget" name="page1_SWV">
@@ -922,6 +922,47 @@ QSpinBox:disabled {
        <number>1000</number>
       </property>
      </widget>
+     <widget class="QLabel" name="label_7">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>20</y>
+        <width>231</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel {
+    /* Fondo azul acero muy suave para destacar sin cansar la vista */
+    background-color: #E6EBF0; 
+    
+    /* Borde sólido y recto para coincidir con tus QLineEdit y Botones */
+    border: 1px solid #7092BE; 
+    border-radius: 0px; 
+    
+    /* Texto */
+    color: #1A1A1A;                /* Negro carbón para legibilidad */
+    font-family: &quot;Segoe UI&quot;;       /* Tipografía Windows 11 */
+    font-weight: bold;             /* Para que resalte como encabezado */
+    font-size: 16px;               /* Un poco más grande que los parámetros */
+    
+    /* Espaciado interno */
+    padding: 5px;
+}</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Shape::Box</enum>
+      </property>
+      <property name="lineWidth">
+       <number>2</number>
+      </property>
+      <property name="text">
+       <string>Square Wave Voltammetry</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="page2_LSV">
      <widget class="QLabel" name="label_15">
@@ -1379,6 +1420,90 @@ QSpinBox:focus {
        <number>100</number>
       </property>
      </widget>
+     <widget class="QLabel" name="label_8">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>20</y>
+        <width>231</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel {
+    /* Fondo azul acero muy suave para destacar sin cansar la vista */
+    background-color: #E6EBF0; 
+    
+    /* Borde sólido y recto para coincidir con tus QLineEdit y Botones */
+    border: 1px solid #7092BE; 
+    border-radius: 0px; 
+    
+    /* Texto */
+    color: #1A1A1A;                /* Negro carbón para legibilidad */
+    font-family: &quot;Segoe UI&quot;;       /* Tipografía Windows 11 */
+    font-weight: bold;             /* Para que resalte como encabezado */
+    font-size: 16px;               /* Un poco más grande que los parámetros */
+    
+    /* Espaciado interno */
+    padding: 5px;
+}</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Shape::Box</enum>
+      </property>
+      <property name="lineWidth">
+       <number>2</number>
+      </property>
+      <property name="text">
+       <string>Linear/Cyclic Voltammetry</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="page3_CPE">
+     <widget class="QLabel" name="label_9">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>20</y>
+        <width>271</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel {
+    /* Fondo azul acero muy suave para destacar sin cansar la vista */
+    background-color: #E6EBF0; 
+    
+    /* Borde sólido y recto para coincidir con tus QLineEdit y Botones */
+    border: 1px solid #7092BE; 
+    border-radius: 0px; 
+    
+    /* Texto */
+    color: #1A1A1A;                /* Negro carbón para legibilidad */
+    font-family: &quot;Segoe UI&quot;;       /* Tipografía Windows 11 */
+    font-weight: bold;             /* Para que resalte como encabezado */
+    font-size: 16px;               /* Un poco más grande que los parámetros */
+    
+    /* Espaciado interno */
+    padding: 5px;
+}</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Shape::Box</enum>
+      </property>
+      <property name="lineWidth">
+       <number>2</number>
+      </property>
+      <property name="text">
+       <string>Controlled Potential Electrolysis</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QFrame" name="StatusFrame">
@@ -1399,9 +1524,9 @@ QSpinBox:focus {
     <widget class="QLineEdit" name="CurrentDisplay">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>300</x>
        <y>0</y>
-       <width>181</width>
+       <width>151</width>
        <height>30</height>
       </rect>
      </property>
@@ -1421,7 +1546,7 @@ QSpinBox:focus {
 }</string>
      </property>
      <property name="text">
-      <string>Current Measure:   00.00</string>
+      <string>Current:   00.000</string>
      </property>
      <property name="readOnly">
       <bool>true</bool>
@@ -1430,9 +1555,9 @@ QSpinBox:focus {
     <widget class="QLineEdit" name="TimeDisplay">
      <property name="geometry">
       <rect>
-       <x>160</x>
+       <x>192</x>
        <y>0</y>
-       <width>113</width>
+       <width>109</width>
        <height>30</height>
       </rect>
      </property>
@@ -1466,7 +1591,7 @@ QSpinBox:focus {
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>161</width>
+       <width>193</width>
        <height>30</height>
       </rect>
      </property>
@@ -1516,7 +1641,7 @@ QSpinBox:focus {
 }</string>
      </property>
      <property name="text">
-      <string>Current Scale Selected:   </string>
+      <string>Current Scale:   </string>
      </property>
      <property name="readOnly">
       <bool>true</bool>
@@ -1712,7 +1837,7 @@ QPushButton:disabled {
      <rect>
       <x>421</x>
       <y>31</y>
-      <width>601</width>
+      <width>491</width>
       <height>30</height>
      </rect>
     </property>
@@ -1764,6 +1889,38 @@ QPushButton:pressed {
       <string>Clear</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QLabel" name="LabelLogoInterno">
+    <property name="geometry">
+     <rect>
+      <x>910</x>
+      <y>7</y>
+      <width>110</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>200</width>
+      <height>50</height>
+     </size>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLabel#LabelLogo {
+    background-color: transparent; /* Fondo transparente */
+    padding: 2px;
+    border: none;
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
