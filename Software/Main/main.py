@@ -108,6 +108,7 @@ class PotenciostatoApp(QtWidgets.QMainWindow):
         if self.controller.current_experiment != "NO_EXPERIMENT":
             # Iniciamos el flujo de Handshakes
             print("Start Button Pressed")
+            self.init_button.setEnabled(False)
             self.controller.limpiar_experimento_completo()
             self.controller.iniciar_flujo_experimento()
 
@@ -178,6 +179,46 @@ class PotenciostatoApp(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
+    
+    # ESTILO GLOBAL PARA DIÁLOGOS
+    app.setStyleSheet("""
+        QMessageBox, QFileDialog {
+            background-color: #F0F4F9; /* Fondo azul claro de la UI */
+            font-family: "Segoe UI";
+        }
+        
+        QMessageBox QLabel {
+            color: #1A1A1A; /* Texto negro carbón */
+            font-size: 13px;
+        }
+        
+        QPushButton {
+            background-color: #FFFFFF;
+            border: 1px solid #B0BCC7;
+            border-radius: 4px;
+            padding: 5px 15px;
+            color: #1A1A1A;
+            min-width: 80px;
+        }
+        
+        QPushButton:hover {
+            border: 1px solid #7092BE;
+            background-color: #E6EBF0;
+        }
+        
+        /* Estilo para el explorador de archivos */
+        QFileDialog QListView, QFileDialog QTreeView {
+            background-color: #FFFFFF;
+            border: 1px solid #D1D9E0;
+        }
+        
+        QLineEdit {
+            border: 1px solid #B0BCC7;
+            border-radius: 4px;
+            padding: 3px;
+        }
+    """)
+    
     window = PotenciostatoApp()
     window.show()
     sys.exit(app.exec())

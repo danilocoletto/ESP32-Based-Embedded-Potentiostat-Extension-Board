@@ -165,6 +165,7 @@ class PotentiostatController:
         self.comm_state = "IDLE"
         self.retry_count = 0
         self.progress_timer.stop()
+        self.view.init_button.setEnabled(True)
 
     def iniciar_logica_ui_experimento(self):
         """Inicia cronómetros y UI una vez que la ESP confirma EXECUTING"""
@@ -272,13 +273,19 @@ class PotentiostatController:
             self.progress_timer.stop()
 
     def seleccionar_experimento(self, action_name):
-        """Cambia la página del StackedWidget y actualiza el tipo de experimento"""
+        """Cambia la técnica solo si no hay un experimento en curso."""
+        # BLOQUEO DE SEGURIDAD
+        if self.comm_state != "IDLE":
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.warning(self.view, "Action Denied", 
+                "An experiment is currently running. Stop it before switching techniques.")
+            return
+
         if action_name in EXPERIMENT_PAGES:
             config = EXPERIMENT_PAGES[action_name]
             self.current_experiment = action_name
             
             # Cambiar físicamente la página en la interfaz
-            # --- UPDATE GRAPH LABELS ---
             self.graph.set_experiment_mode(action_name)
             self.view.stackedWidget.setCurrentIndex(config["index"])
             print(f"Selected Experiment: {config['nombre']}")
@@ -394,6 +401,31 @@ class PotentiostatController:
         # 3. Actualizar Display de Corriente
         self.view.CurrentDisplay.setText(f"Current:   {display_val:.3f} {unit}")
 
+
+    def cambiar_escala(self, action_name):
+        """
+        Cambia la ganancia del hardware solo si no hay un experimento en curso.
+        """
+        # --- BLOQUEO DE SEGURIDAD ---
+        if self.comm_state != "IDLE":
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.warning(
+                self.view, 
+                "Operation Denied", 
+                "Cannot change the current scale while an experiment is running.\n"
+                "Please, stop the experiment first."
+            )
+            return
+
+        # Si está en IDLE, procedemos con el cambio
+        if action_name in SCALES_CONFIG:
+            info = SCALES_CONFIG[action_name]
+            # 'multiplier' en tu protocol_defs.py representa la R de shunt (Ohms)
+            self.current_gain = float(info['multiplier']) 
+            
+            self.view.CurrentScaleDisplay.setText(f"Scale Selected: {info['name']}")
+            self.view.AmpGainDisplay.setText(f"Amplifier Gain: {info['gain_label']}")
+    """
     def cambiar_escala(self, action_name):
         if action_name in SCALES_CONFIG:
             info = SCALES_CONFIG[action_name]
@@ -402,7 +434,7 @@ class PotentiostatController:
             
             self.view.CurrentScaleDisplay.setText(f"Scale Selected: {info['name']}")
             self.view.AmpGainDisplay.setText(f"Amplifier Gain: {info['gain_label']}")
-
+    """
     def obtener_parametros_activos(self):
         """Devuelve un diccionario con los valores de los SpinBoxes de la página actual"""
         if self.current_experiment == "NO_EXPERIMENT":

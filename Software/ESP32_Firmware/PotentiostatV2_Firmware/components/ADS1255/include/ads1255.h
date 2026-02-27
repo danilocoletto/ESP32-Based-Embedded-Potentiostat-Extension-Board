@@ -93,7 +93,7 @@ const defaults = {
 #define GEN_CLOCK
 
 #ifdef GEN_CLOCK
-  #define CLOCK_PIN 16 
+  #define ADS1255_CLOCK_PIN     GPIO_NUM_16 
 #endif
 
 #define ADS1255_DOUT_MISO       GPIO_NUM_19

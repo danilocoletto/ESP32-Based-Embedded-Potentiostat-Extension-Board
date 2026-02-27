@@ -499,10 +499,10 @@ QSpinBox:focus {
        <string> mV</string>
       </property>
       <property name="minimum">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="maximum">
-       <number>1000</number>
+       <number>250</number>
       </property>
      </widget>
      <widget class="QSpinBox" name="swv_quiet_t">
@@ -597,10 +597,10 @@ QSpinBox:focus {
        <string> mV</string>
       </property>
       <property name="minimum">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="maximum">
-       <number>100</number>
+       <number>50</number>
       </property>
      </widget>
      <widget class="QSpinBox" name="swv_final_pot">
@@ -695,7 +695,7 @@ QSpinBox:focus {
        <string> Hz</string>
       </property>
       <property name="minimum">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="maximum">
        <number>1500</number>
@@ -802,10 +802,10 @@ QSpinBox:disabled {
        <string> mV</string>
       </property>
       <property name="minimum">
-       <number>-2000</number>
+       <number>-2500</number>
       </property>
       <property name="maximum">
-       <number>2000</number>
+       <number>2500</number>
       </property>
      </widget>
      <widget class="QSpinBox" name="deposition_time">
@@ -859,7 +859,7 @@ QSpinBox:disabled {
        <string> s</string>
       </property>
       <property name="minimum">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="maximum">
        <number>1000</number>
@@ -1316,7 +1316,7 @@ QSpinBox:focus {
        <string> mV/s</string>
       </property>
       <property name="minimum">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="maximum">
        <number>1000</number>
@@ -1414,7 +1414,7 @@ QSpinBox:focus {
        <string/>
       </property>
       <property name="minimum">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="maximum">
        <number>100</number>
@@ -1503,6 +1503,632 @@ QSpinBox:focus {
       <property name="alignment">
        <set>Qt::AlignmentFlag::AlignCenter</set>
       </property>
+     </widget>
+     <widget class="QLabel" name="label_23">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>130</y>
+        <width>151</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Applied Potential</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="cpe_time_limit">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>210</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string/>
+      </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>2500</number>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_24">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>170</y>
+        <width>151</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Sample Interval</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="cpe_applied_pot">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>130</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string> mV</string>
+      </property>
+      <property name="minimum">
+       <number>-2500</number>
+      </property>
+      <property name="maximum">
+       <number>2500</number>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_25">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>210</y>
+        <width>151</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Time Limit</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="cpe_sample_interval">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>170</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QDoubleSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QDoubleSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="prefix">
+       <string/>
+      </property>
+      <property name="suffix">
+       <string> s</string>
+      </property>
+      <property name="decimals">
+       <number>3</number>
+      </property>
+      <property name="minimum">
+       <double>0.005000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>100.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.005000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.005000000000000</double>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="comboBox">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>250</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* 1. Estilo base del cuadro (el que proporcionaste con ajustes de compatibilidad) */
+QComboBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; 
+    padding: 5px;
+    padding-left: 25px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE;
+}
+
+/* Opcional: Cambiar el color de la flecha cuando pasas el mouse */
+QComboBox::down-arrow:hover {
+    border-top: 5px solid #7092BE; /* Azul acero al pasar el mouse */
+}
+
+
+/* 4. Estilo de la lista desplegable (Importante para que no salga gris) */
+QComboBox QAbstractItemView {
+    border: 1px solid #B0BCC7;
+    background-color: #FFFFFF;
+    selection-color: #FFFFFF;
+    padding-left: 15px;
+    border-radius: 4px; 
+    selection-background-color: #7092BE; /* Azul acero al pasar el mouse [cite: 48, 85] */
+    font-family: &quot;Segoe UI&quot;;
+    color: #1A1A1A;
+}
+
+/* 5. Estado cuando el usuario hace clic o está activo */
+QComboBox:focus {
+    border: 1px solid #7092BE; /* Resaltado azul acero de tu UI [cite: 75, 99] */
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QComboBox:focus {
+    border: 1px solid #7092BE;
+}
+
+
+</string>
+      </property>
+      <item>
+       <property name="text">
+        <string>SEC</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>MIN</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLabel" name="label_26">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>250</y>
+        <width>151</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Time Units</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cpe_min_curr_lim_on_off">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>310</y>
+        <width>171</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QCheckBox {
+    spacing: 8px;              /* Espacio entre el cuadro y el texto */
+    color: #1A1A1A;            /* Texto casi negro */
+    font-family: &quot;Segoe UI&quot;;
+    font-size: 13px;
+}
+
+/* El cuadro del checkbox */
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #B0BCC7; /* Borde recto igual que tus botones y barras */
+    border-radius: 0px;        /* Bordes totalmente rectos para el look industrial */
+    background-color: #FFFFFF; /* Fondo blanco */
+}
+
+/* Cuando el mouse pasa por encima */
+QCheckBox::indicator:hover {
+    border: 1px solid #7092BE; /* Resaltado azul acero */
+    background-color: #F0F4F9; /* Fondo azul glaciar muy tenue */
+}
+
+/* Cuando está marcado (Checked) */
+QCheckBox::indicator:checked {
+    background-color: #7092BE; /* Fondo azul acero sólido */
+    border: 1px solid #5A769A;
+    /* Aquí podrías añadir una imagen de una tilde blanca si la tienes, 
+       si no, el cambio de color sólido ya indica que está activo */
+}
+
+/* Cuando está deshabilitado */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+QCheckBox::indicator:disabled {
+    background-color: #E6EBF0;
+    border: 1px solid #D1D9E0;
+}</string>
+      </property>
+      <property name="text">
+       <string>Minimum Current Limit</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="cpe_min_curr_lim_unit">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>350</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* 1. Estilo base del cuadro (el que proporcionaste con ajustes de compatibilidad) */
+QComboBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; 
+    padding: 5px;
+    padding-left: 25px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE;
+}
+
+/* Opcional: Cambiar el color de la flecha cuando pasas el mouse */
+QComboBox::down-arrow:hover {
+    border-top: 5px solid #7092BE; /* Azul acero al pasar el mouse */
+}
+
+
+/* 4. Estilo de la lista desplegable (Importante para que no salga gris) */
+QComboBox QAbstractItemView {
+    border: 1px solid #B0BCC7;
+    background-color: #FFFFFF;
+    selection-color: #FFFFFF;
+    padding-left: 15px;
+    border-radius: 4px; 
+    selection-background-color: #7092BE; /* Azul acero al pasar el mouse [cite: 48, 85] */
+    font-family: &quot;Segoe UI&quot;;
+    color: #1A1A1A;
+}
+
+/* 5. Estado cuando el usuario hace clic o está activo */
+QComboBox:focus {
+    border: 1px solid #7092BE; /* Resaltado azul acero de tu UI [cite: 75, 99] */
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QComboBox:focus {
+    border: 1px solid #7092BE;
+}
+
+
+</string>
+      </property>
+      <item>
+       <property name="text">
+        <string>mA</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>uA</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>nA</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QSpinBox" name="cpe_min_current_limit">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>310</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string/>
+      </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cpe_charg_lim_on_off">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>400</y>
+        <width>141</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QCheckBox {
+    spacing: 8px;              /* Espacio entre el cuadro y el texto */
+    color: #1A1A1A;            /* Texto casi negro */
+    font-family: &quot;Segoe UI&quot;;
+    font-size: 13px;
+}
+
+/* El cuadro del checkbox */
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #B0BCC7; /* Borde recto igual que tus botones y barras */
+    border-radius: 0px;        /* Bordes totalmente rectos para el look industrial */
+    background-color: #FFFFFF; /* Fondo blanco */
+}
+
+/* Cuando el mouse pasa por encima */
+QCheckBox::indicator:hover {
+    border: 1px solid #7092BE; /* Resaltado azul acero */
+    background-color: #F0F4F9; /* Fondo azul glaciar muy tenue */
+}
+
+/* Cuando está marcado (Checked) */
+QCheckBox::indicator:checked {
+    background-color: #7092BE; /* Fondo azul acero sólido */
+    border: 1px solid #5A769A;
+    /* Aquí podrías añadir una imagen de una tilde blanca si la tienes, 
+       si no, el cambio de color sólido ya indica que está activo */
+}
+
+/* Cuando está deshabilitado */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+QCheckBox::indicator:disabled {
+    background-color: #E6EBF0;
+    border: 1px solid #D1D9E0;
+}</string>
+      </property>
+      <property name="text">
+       <string>Charge Limit</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="cpe_charg_limit">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>400</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::WheelFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* Estilo base del cuadro */
+QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; /* Bordes rectos industriales */
+    padding: 5px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE; /* Color de resaltado azul acero */
+}
+
+/* Ocultar las flechas de subir y bajar */
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 0px;
+    border: none;
+    background: transparent;
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QSpinBox:focus {
+    border: 1px solid #7092BE;
+}</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+      <property name="suffix">
+       <string/>
+      </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="cpe_charg_lim_unit">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>440</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* 1. Estilo base del cuadro (el que proporcionaste con ajustes de compatibilidad) */
+QComboBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0BCC7;
+    border-radius: 4px; 
+    padding: 5px;
+    padding-left: 25px;
+    color: #1A1A1A;
+    font-family: &quot;Segoe UI&quot;;
+    selection-background-color: #7092BE;
+}
+
+/* Opcional: Cambiar el color de la flecha cuando pasas el mouse */
+QComboBox::down-arrow:hover {
+    border-top: 5px solid #7092BE; /* Azul acero al pasar el mouse */
+}
+
+
+/* 4. Estilo de la lista desplegable (Importante para que no salga gris) */
+QComboBox QAbstractItemView {
+    border: 1px solid #B0BCC7;
+    background-color: #FFFFFF;
+    selection-color: #FFFFFF;
+    padding-left: 15px;
+    border-radius: 4px; 
+    selection-background-color: #7092BE; /* Azul acero al pasar el mouse [cite: 48, 85] */
+    font-family: &quot;Segoe UI&quot;;
+    color: #1A1A1A;
+}
+
+/* 5. Estado cuando el usuario hace clic o está activo */
+QComboBox:focus {
+    border: 1px solid #7092BE; /* Resaltado azul acero de tu UI [cite: 75, 99] */
+}
+
+/* Opcional: un borde más oscuro cuando el usuario hace clic para escribir */
+QComboBox:focus {
+    border: 1px solid #7092BE;
+}
+
+
+</string>
+      </property>
+      <item>
+       <property name="text">
+        <string>mC</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>uC</string>
+       </property>
+      </item>
      </widget>
     </widget>
    </widget>

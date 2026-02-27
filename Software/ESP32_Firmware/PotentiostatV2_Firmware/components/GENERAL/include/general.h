@@ -19,6 +19,7 @@
 #include "driver/uart.h"
 
 
+
 /* --- COMANDOS RECIBIDOS (Entrada) --- */
 #define CMD_ABORT               "ABORT"
 #define CMD_READY_UP            "READY_UP"
@@ -43,7 +44,8 @@
 #define MSG_FINISHED            "FINISHED\n"
 #define MSG_CELL_CONNECTED      "CELL1\n"
 #define MSG_CELL_DISCONNECTED   "CELL0\n"
-#define MSG_ID_STR              "Potenciostato V2.0\n"
+#define MSG_ID_STR              "POTENTIOSTAT_V2.0\n"
+#define MSG_FIRMWARE            "FIRM_V1.0\n"
 
 
 // --- CONFIGURACIÓN UART ---

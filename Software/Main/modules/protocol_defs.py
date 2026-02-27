@@ -94,7 +94,7 @@ EXPERIMENT_PAGES = {
 COMANDOS_SISTEMA = {                                # VER SI ES NECESARIO PONERLES EL \n PARA INTERPRETARLOS COMO COMANDOS
     "OK":           "ESP: Operation Succesful",                      # QUE VIENEN DESDE LA ESP
     "ER":           "ESP: Hardware Error",
-    "ID":           "Potenciostato V2.0",
+    "ID":           "POTENTIOSTAT_V2.0",
     "STOP_OK":      "ESP: Abortion Activated",
     "CONF_OK":      "ESP: Exp Config OK",
     "READY_ACK":    "ESP: Ready_UP Order Received",

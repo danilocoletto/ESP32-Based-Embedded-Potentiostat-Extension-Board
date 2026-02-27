@@ -165,7 +165,7 @@ void init_adc_clock(uint32_t freq)
       .channel = LEDC_CHANNEL_0,
       .timer_sel = LEDC_TIMER_0,
       .intr_type = LEDC_INTR_DISABLE,
-      .gpio_num = CLOCK_PIN,
+      .gpio_num = ADS1255_CLOCK_PIN,
       .duty = 1,
       .hpoint = 0};
   ledc_channel_config(&ledc_channel);
