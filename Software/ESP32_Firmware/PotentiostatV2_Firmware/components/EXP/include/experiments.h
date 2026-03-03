@@ -102,8 +102,10 @@ typedef struct __attribute__((packed)) {
 
 // Nueva estructura específica para LSV/CV con resolución decimal
 typedef struct __attribute__((packed)) {
+    uint8_t header[2];
     float voltage_index_mv;
     float voltage_meas;
+    uint8_t tail;
 } lsv_cv_packet_t;
 
 bool        get_Electrodes_State        (void);

@@ -1,0 +1,7 @@
+﻿Designator,Footprint,Quantity,Value,LCSC Part #
+"3V_SDA_SCL, 5V_SDA_SCL",PinHeader_1x02_P2.54mm_Vertical,2,Conn_01x02,
+ADS1255,PinHeader_1x05_P2.54mm_Vertical,1,Conn_01x05,
+J1,PinHeader_2x15_P2.54mm_Horizontal,1,Conn_02x15_Odd_Even,
+PWR_JP,PinHeader_1x02_P2.54mm_Vertical,1,Jumper_2_Open,
+U1,MODULE_ESP32_DEVKIT_V1_CORRECTED,1,ESP32 - DEVKIT,
+U3,LevelShifter,1,~,

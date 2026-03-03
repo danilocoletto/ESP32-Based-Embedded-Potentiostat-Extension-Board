@@ -50,11 +50,31 @@ static void process_line_FSM (potentiostat_fsm_t *fsm)
 
     // COMANDO PRIORITARIO: ABORT
     if (strcmp(cmd, CMD_ABORT) == 0) {
-        transition_state_FSM(fsm, STATE_WAITING);
-        ABORT_FLAG = 1;
-        uart_write_bytes(UART_NUM_0, MSG_STOP_OK, strlen(MSG_STOP_OK));
-        return;
+
+        if (fsm->current_state == STATE_EXECUTING) 
+        {
+            ABORT_FLAG = 1; // Solo levantamos el flag si hay ejecución
+            uart_write_bytes(UART_NUM_0, MSG_STOP_OK, strlen(MSG_STOP_OK));
+        }
+        else
+            // Si no estaba ejecutando, simplemente aseguramos que estamos en WAITING
+            transition_state_FSM(fsm, STATE_WAITING);
     }
+    else if (strcmp(cmd, CMD_RESET) == 0) {
+        uart_write_bytes(UART_NUM_0, MSG_RESETTING, strlen(MSG_RESETTING));
+        uart_wait_tx_done(UART_NUM_0, pdMS_TO_TICKS(100));
+        esp_restart();
+    }
+    else if (strcmp(cmd, CMD_GET_STATE) == 0) {
+        // Implementar lógica de estado de electrodos
+        if (fsm->current_state == STATE_WAITING)
+            uart_write_bytes(UART_NUM_0, MSG_WAITING, strlen(MSG_WAITING));
+        else if (fsm->current_state == STATE_PREPARING)
+            uart_write_bytes(UART_NUM_0, MSG_PREPARING, strlen(MSG_PREPARING));
+        }
+        else if (fsm->current_state == STATE_EXECUTING)
+            uart_write_bytes(UART_NUM_0, MSG_EXECUTING, strlen(MSG_EXECUTING));
+        
 
     switch (fsm->current_state) {
         case STATE_WAITING:
@@ -65,11 +85,6 @@ static void process_line_FSM (potentiostat_fsm_t *fsm)
             } 
             else if (strcmp(cmd, CMD_GET_ID) == 0) {
                 uart_write_bytes(UART_NUM_0, MSG_ID_STR, strlen(MSG_ID_STR));
-            } 
-            else if (strcmp(cmd, CMD_RESET) == 0) {
-                uart_write_bytes(UART_NUM_0, MSG_RESETTING, strlen(MSG_RESETTING));
-                uart_wait_tx_done(UART_NUM_0, pdMS_TO_TICKS(100));
-                esp_restart();
             } 
             else if (strcmp(cmd, CMD_E_STATUS) == 0) {
                 // Implementar lógica de estado de electrodos
@@ -141,6 +156,7 @@ static void process_line_FSM (potentiostat_fsm_t *fsm)
             //else if (strncmp(cmd, "CONF_CPE:", 8) == 0){}
             else if (strcmp(cmd, CMD_START_EXP) == 0) 
             {
+                ABORT_FLAG = 0;
                 uart_write_bytes(UART_NUM_0, MSG_EXECUTING, strlen(MSG_EXECUTING));
                 transition_state_FSM(fsm, STATE_EXECUTING);
                 xTaskNotifyGive(xTaskExpControlHandle);

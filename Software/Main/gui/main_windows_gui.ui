@@ -167,7 +167,7 @@ QStackedWidget QLabel {
 </string>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="EmptyPage"/>
     <widget class="QWidget" name="page1_SWV">
@@ -964,7 +964,7 @@ QSpinBox:disabled {
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="page2_LSV">
+    <widget class="QWidget" name="page2_LSV_CV">
      <widget class="QLabel" name="label_15">
       <property name="geometry">
        <rect>
@@ -2585,7 +2585,7 @@ QPushButton:pressed {
     <property name="title">
      <string>Experiment</string>
     </property>
-    <addaction name="actionLSV"/>
+    <addaction name="actionLSV_CV"/>
     <addaction name="actionSWV"/>
     <addaction name="actionCPE"/>
    </widget>
@@ -2640,7 +2640,7 @@ QPushButton:pressed {
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionLSV">
+  <action name="actionLSV_CV">
    <property name="text">
     <string>Linear/Cyclic Voltammetry</string>
    </property>

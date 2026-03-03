@@ -397,6 +397,9 @@ uint8_t execute_LSV_CV_experiment(LSV_CV_config *config)
     float current_v = (float)config->initial_pot_mv;
     
     lsv_cv_packet_t pkt;
+    pkt.header[0] = HEADER_LSV[0]; 
+    pkt.header[1] = HEADER_LSV[1];
+    pkt.tail = PACKET_TAIL[0];
 
     // 1. CONSTRUCCIÓN DE LA RUTA SEGÚN EL MANUAL
     float targets[config->segments];
@@ -444,18 +447,21 @@ uint8_t execute_LSV_CV_experiment(LSV_CV_config *config)
 
         for (uint32_t step = 0; step <= n_steps; step++) 
         {
-            if (ABORT_FLAG) goto abort_experiment;
+            if (ABORT_FLAG) 
+                goto abort_experiment;
+
             int64_t t_start = esp_timer_get_time();
 
             MAX5217_DAC_WRITE_HAL_MV((int16_t)roundf(current_v));
 
             ADS125X_WAIT_DYDR_HAL(); 
-            pkt.voltage_index_mv = (int16_t)roundf(current_v);
-            pkt.voltage_meas = ADS125X_READVOLT_HAL();
+            pkt.voltage_index_mv = current_v;
+            pkt.voltage_meas  = ADS125X_READVOLT_HAL();
             
-            uart_write_bytes(UART_NUM_0, HEADER_LSV, HEADER_LSV_SIZE);
-            uart_write_bytes(UART_NUM_0, &pkt, sizeof(pkt));
-            uart_write_bytes(UART_NUM_0, PACKET_TAIL, TAIL_SIZE);
+            uart_write_bytes(UART_NUM_0, &pkt, sizeof(lsv_cv_packet_t));
+            //uart_write_bytes(UART_NUM_0, HEADER_LSV, HEADER_LSV_SIZE);
+            //uart_write_bytes(UART_NUM_0, &pkt, sizeof(pkt));
+            //uart_write_bytes(UART_NUM_0, PACKET_TAIL, TAIL_SIZE);
             
             int64_t elapsed = esp_timer_get_time() - t_start;
             int64_t to_wait = (int64_t)step_delay_us - elapsed;

@@ -1,67 +1,65 @@
+from collections import deque
 import numpy as np
 import pyqtgraph as pg
-import pyqtgraph.exporters
 
 class DataProcessor:
-    def __init__(self, window_size=7):
+    def __init__(self, median_size=5, window_size=61, poly_order=3):
+        # Asegurar que window_size sea impar para SG
+        if window_size % 2 == 0: window_size += 1
+        
         self.window_size = window_size
-        # Estructura requerida: [timestamp, voltage_mv, current_ma, current_filtered_ma]
+        self.poly_order = poly_order
+        self.median_size = median_size
+        
+        # Coeficientes para el ÚLTIMO punto de la ventana (evita el lag)
+        self._coeffs = self._calculate_savgol_coeffs_end(window_size, poly_order)
+        
         self.data_history = [] 
-        self._buffer_filtrado = []
+        self._buffer_raw    = deque(maxlen=self.median_size)    # Buffer para el filtro de mediana
+        self._buffer_median = deque(maxlen=self.window_size)    # Buffer para el filtro Savitzky-Golay
+
+    def _calculate_savgol_coeffs_end(self, window_size, order):
+        """Calcula los coeficientes para el ÚLTIMO punto de la ventana (Causal)."""
+        # Creamos la matriz de diseño de -window_size+1 hasta 0
+        # El 0 representa el punto actual (el más reciente)
+        t = np.arange(-window_size + 1, 1)
+
+        b = np.array([[k**i for i in range(order + 1)] for k in t])
+
+        # La última fila de la pseudo-inversa nos da los coeficientes 
+        # para estimar el punto en t=0 (el extremo final)
+
+        m = np.linalg.pinv(b)[0]
+        return m
 
     def process_sample(self, timestamp, v_applied_mv, v_adc_v, gain_ohms):
-        # Conversión: Tensión ADC (V) / Ganancia (Ω) = Corriente (mA)
+        # 1. Conversión a Corriente
         current_ma = (v_adc_v / gain_ohms) * 1000
         
-        # Filtro de Media Móvil
-        self._buffer_filtrado.append(current_ma)
-        if len(self._buffer_filtrado) > self.window_size:
-            self._buffer_filtrado.pop(0)
-        current_filtered_ma = sum(self._buffer_filtrado) / len(self._buffer_filtrado)
+        # 2. Filtro de Mediana — append() es O(1), maxlen descarta el viejo automáticamente
+        self._buffer_raw.append(current_ma)
+        current_median = np.median(self._buffer_raw)
         
-        # Guardar en el arreglo con el orden solicitado
+        # 3. Savitzky-Golay Causal — igual, O(1) por muestra
+        self._buffer_median.append(current_median)
+            
+        if len(self._buffer_median) == self.window_size:
+            # np.dot acepta deque directamente vía el protocolo de buffer
+            current_filtered_ma = np.dot(self._coeffs, self._buffer_median)
+        else:
+            current_filtered_ma = current_median
+            
+        # 4. Guardar y Retornar
         sample = [timestamp, v_applied_mv, current_ma, current_filtered_ma]
         self.data_history.append(sample)
+        
         return sample
     
     def clear_data(self):
-        """Limpia el historial de datos y los buffers de filtrado."""
+        """Limpia el historial y reinicia buffers."""
         self.data_history = []
-        self._buffer_filtrado = []
-    """""
-    def __init__(self, alpha=0.3):
-        #alpha: Factor de suavizado (0.0 a 1.0).
-        #       - 0.1: Filtrado muy fuerte (curva muy suave, pero con más retraso).
-        #       - 0.5: Filtrado equilibrado.
-        #       - 0.8: Filtrado leve (sigue mucho al ruido).
-        self.alpha = alpha
-        self.data_history = [] 
-        self._last_filtered_val = None # Reemplaza al buffer de lista
-
-    def process_sample(self, timestamp, v_applied_mv, v_adc_v, gain_ohms):
-        # Conversión: Tensión ADC (V) / Ganancia (Ω) = Corriente (mA)
-        current_ma = (v_adc_v / gain_ohms) * 1000
-        
-        # Inicialización en la primera muestra
-        if self._last_filtered_val is None:
-            self._last_filtered_val = current_ma
-        
-        # --- FILTRO EMA (Fórmula: S_t = α * X_t + (1 - α) * S_{t-1}) ---
-        current_filtered_ma = (self.alpha * current_ma) + ((1 - self.alpha) * self._last_filtered_val)
-        
-        # Guardamos para la siguiente iteración
-        self._last_filtered_val = current_filtered_ma
-        
-        # Guardar en el historial
-        sample = [timestamp, v_applied_mv, current_ma, current_filtered_ma]
-        self.data_history.append(sample)
-        return sample
-
-    def clear_data(self):
-        #Limpia el historial y el estado del filtro.
-        self.data_history = []
-        self._last_filtered_val = None
-    """
+        self._buffer_raw.clear()
+        self._buffer_median.clear()
 
 class PotentiostatGraph:
     def __init__(self, plot_widget):
@@ -80,7 +78,7 @@ class PotentiostatGraph:
         self.plot.getAxis('bottom').enableAutoSIPrefix(False)
 
         # Curves: Raw (Steel Blue) and Filtered (Red)
-        self.curve_raw = self.plot.plot(pen=pg.mkPen(color="#0078D4", width=1.5), symbol=None)
+        #self.curve_raw = self.plot.plot(pen=pg.mkPen(color="#0078D4", width=1.5), symbol=None)
         self.curve_filtered = self.plot.plot(pen=pg.mkPen('r', width=2))
         
         # Initial labels
@@ -98,7 +96,7 @@ class PotentiostatGraph:
         'font-weight': 'bold'        # <--- ESTO PONE LA LETRA EN NEGRITA
         }
 
-        if action_name in ["NO_EXPERIMENT", "actionSWV", "actionLSV"]:
+        if action_name in ["NO_EXPERIMENT", "actionSWV", "actionLSV/CV"]:
             self.plot.setLabel('bottom', 'Potential', units='mV', **axis_style)
             self.plot.setLabel('left', 'Current', units='mA', **axis_style)
         elif action_name == "actionCPE":
@@ -133,7 +131,7 @@ class PotentiostatGraph:
         self.plot.getAxis('left').setLabel('Current', units=unit)
         
         # Cargamos los datos en las curvas
-        self.curve_raw.setData(x_data, i_ma * mult)
+        #self.curve_raw.setData(x_data, i_ma * mult)
         self.curve_filtered.setData(x_data, i_filt_ma * mult)
         
         self.plot.autoRange(padding=0.05)
@@ -145,5 +143,5 @@ class PotentiostatGraph:
     
     def clear_graph(self):
         """Clears curves """
-        self.curve_raw.setData([], [])
+        #self.curve_raw.setData([], [])
         self.curve_filtered.setData([], [])

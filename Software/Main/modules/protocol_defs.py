@@ -60,7 +60,7 @@ EXPERIMENT_CONFIG = {
         "suffix_size": 1 # Agregamos una marca para el byte de fin
     },
     b'\xcc\xdd': {
-        "nombre": "Cyclic Voltammetry",
+        "nombre": "Linear/Cyclic Voltammetry",
         "format": "<ff",    # Index, Current
         "size": 8,           # 4
         "suffix_size": 1 # Agregamos una marca para el byte de fin
@@ -86,7 +86,7 @@ EXPERIMENT_CONFIG = {
 EXPERIMENT_PAGES = {
     "NO_EXPERIMENT": {"index": 0, "nombre": "None", "page_name": "EmptyPage"},
     "actionSWV": {"index": 1, "nombre": "Square Wave Voltammetry", "page_name": "page1_SWV"},
-    "actionLSV": {"index": 2, "nombre": "Cyclic Voltammetry", "page_name": "page2_LSV"},
+    "actionLSV/CV": {"index": 2, "nombre": "Linear/Cyclic Voltammetry", "page_name": "page2_LSV_CV"},
     "actionCPE": {"index": 3, "nombre": "Controlled Potential Electrolysis", "page_name": "page3_CPE"}
 }
 
@@ -119,14 +119,15 @@ COMANDOS_SISTEMA = {                                # VER SI ES NECESARIO PONERL
 }
 
 COMANDOS_UART = {
-    "GET_ID": "?ID\n",
-    "GET_STATUS": "?STATUS\n",
-    "PREPARE":"READY_UP\n",
-    "START":"START_EXP\n",
-    "STOP": "ABORT\n",           # Prioritario
-    "RESET":"RST\n",
-    "ELEC_STATUS":"E_STATUS\n",
-    "SET_GAIN": "SET_GAIN:"
+    "GET_ID":       "?ID\n",
+    "GET_STATE":    "?STATE\n",
+    "GET_STATUS":   "?STATUS\n",
+    "PREPARE":      "READY_UP\n",
+    "START":        "START_EXP\n",
+    "STOP":         "ABORT\n",           # Prioritario
+    "RESET":        "RST\n",
+    "ELEC_STATUS":  "E_STATUS\n",
+    "SET_GAIN":     "SET_GAIN:"
     #"ENGAGE_CELL": "CELL1\n",   # Conectar electrodos
     #"DISENGAGE_CELL": "CELL0\n", # Desconectar electrodos
 }
@@ -144,7 +145,7 @@ PAQUETES_CONFIG = {
             "stir_on_off", "deposition_pot", "deposition_time", "precond_quiet_t"
         ]
     },
-    "actionLSV": {
+    "actionLSV/CV": {
         "header": "CONF_LSV",
         "params": [
             "lsv_initial_pot", "lsv_switch_pot1", "lsv_switch_pot2", 

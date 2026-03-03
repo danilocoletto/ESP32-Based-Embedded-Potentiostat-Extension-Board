@@ -24,6 +24,7 @@
 #define CMD_ABORT               "ABORT"
 #define CMD_READY_UP            "READY_UP"
 #define CMD_GET_ID              "?ID"
+#define CMD_GET_STATE           "?STATE"
 #define CMD_RESET               "RST"
 #define CMD_E_STATUS            "E_STATUS"
 #define CMD_CONF_SWV            "CONF_SWV:"
@@ -49,12 +50,12 @@
 
 
 // --- CONFIGURACIÓN UART ---
-#define UART_PORT_NUM      UART_NUM_0
-#define UART_BAUD_RATE     921600
-#define BUF_SIZE           2048
-#define UART_RX_BUFFER_SIZE 32 // Tamaño máximo de la línea de comando (ej: "10\n")
+#define UART_PORT_NUM           UART_NUM_0
+#define UART_BAUD_RATE          921600
+#define BUF_SIZE                2048
+#define UART_RX_BUFFER_SIZE     32 // Tamaño máximo de la línea de comando (ej: "10\n")
 
-extern volatile bool ABORT_FLAG;
+extern volatile bool            ABORT_FLAG;
 
 void        init_UART       (void);
 

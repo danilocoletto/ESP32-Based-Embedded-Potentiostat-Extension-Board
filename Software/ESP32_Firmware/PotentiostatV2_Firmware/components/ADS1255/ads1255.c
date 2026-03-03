@@ -479,7 +479,7 @@ float ADS125X_ADCFast_ReadVolt_HAL(ADS125X_t *ads)
   }
 
   // Vout = (Code * 2 * Vref) / (PGA * 2^23 - 1) = PGA * 0x7fffff = 8388607.0f
-  return ( (float)adsCode * (2.0f * ads->vref) ) / ( (float)ads->pga * 8388607.0f );
+  return ( (float) (adsCode * (2.0f * ads->vref) ) / ( (float)ads->pga * 8388607.0f ));
 }
 
 /**

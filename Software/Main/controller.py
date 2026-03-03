@@ -1,5 +1,4 @@
 import csv
-import json
 import time  
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import QTimer
@@ -16,7 +15,13 @@ class PotentiostatController:
         self.retry_count = 0
         self.MAX_RETRIES = 2
 
-        # Variable para almacenar el último valor de corriente procesado
+        # Experimento seleccionado actualmente
+        self.current_experiment = "NO_EXPERIMENT"
+        # Ganancia inicial por defecto (ejemplo 100 Ohms de la escala 40mA)
+        self.current_gain = 100.0
+        self.total_experiment_time = 0
+
+        # Variable para almacenar el último valor de corriente procesado para displays númericos
         self.last_current_ma = 0.0
         self.last_time_s = 0.0
 
@@ -26,16 +31,18 @@ class PotentiostatController:
         self.display_update_timer.start(250) # 250ms es ideal para lectura visual
 
 
-        self.processor = DataProcessor(window_size=7)
-        #self.processor = DataProcessor(alpha=0.1)
-        self.graph = PotentiostatGraph(self.view.graphicsView)
-        self.current_experiment = "NO_EXPERIMENT"
-        # Ganancia inicial por defecto (ejemplo 100 Ohms de la escala 40mA)
-        self.current_gain = 100.0
-        self.total_experiment_time = 0
+        # Timer para contabilizar el tiempo de la barra de progreso y el experimento
         self.progress_timer = QTimer()
         self.progress_timer.timeout.connect(self.update_progress_bar)
         self.establecer_escala_inicial()
+
+        # Timer para tasa de refresco del grafico (10Hz)
+        self.graph_update_timer = QTimer()
+        self.graph_update_timer.timeout.connect(self._refresh_graph)
+        self.graph_update_timer.start(100)  # 10 Hz es suficiente para el ojo humano
+
+        self.processor = DataProcessor(median_size=5, window_size=61)
+        self.graph = PotentiostatGraph(self.view.graphicsView)
 
 
     def establecer_escala_inicial(self):
@@ -127,6 +134,12 @@ class PotentiostatController:
         elif clave == "FINISHED":
             self.progress_timer.stop() 
             self.view.progressBar.setValue(100) 
+            self.graph_update_timer.stop()  # ← Congela el gráfico al terminar
+            self.display_update_timer.stop()
+            self.display_update_timer.stop()
+
+            if self.worker:
+                self.worker.cerrar_archivo_respaldo()  # ← flush y cierre al terminar
 
         elif clave == "WAITING":
             self.reset_comm_flow()
@@ -176,11 +189,14 @@ class PotentiostatController:
             self.total_experiment_time = 1.0
 
         self.view.progressBar.setValue(0)
+
         if self.worker:
             self.worker.resetear_archivo_respaldo()
             self.worker.start_time = time.time() # Reset t0 para el gráfico
 
         self.progress_timer.start(100)
+        self.graph_update_timer.start(100)  # ← Reiniciar acá
+        self.display_update_timer.start(250)
     
     def calcular_tiempo_total(self):
         """
@@ -216,7 +232,7 @@ class PotentiostatController:
             
             t_total = t_precond + t_quiet + t_sweep
 
-        elif self.current_experiment == "actionLSV":
+        elif self.current_experiment == "actionLSV/CV":
             # 1. Obtención de parámetros con conversión explícita a float
             t_quiet = float(params.get("lsv_quiet_time", 0.0))
             scan_rate = float(params.get("lsv_scan_rate", 1.0))
@@ -366,19 +382,21 @@ class PotentiostatController:
             # SWV envía Forward (vals[1]) y Reverse (vals[2])
             v_adc_diff = vals[1] - vals[2]
             
-        elif tipo == "Cyclic Voltammetry":
+        elif tipo == "Linear/Cyclic Voltammetry":
             # CV ya envía la corriente neta o el valor directo en vals[1]
             v_adc_diff = vals[1]
 
         # PROCESAMIENTO
         sample = self.processor.process_sample(t, v_applied, v_adc_diff, self.current_gain)
-        
-        # GUARDAR VALORES PARA EL TIMER DE UI
+
+        # Estas variables se guardan para el refresco de los displays númericos
         self.last_time_s = sample[0]
         self.last_current_ma = sample[2]
-        
-        # GRAFICACIÓN
-        self.graph.update(self.processor.data_history, self.current_experiment)
+    
+    def _refresh_graph(self):
+        # Solo renderiza si hay datos nuevos
+        if self.processor.data_history:
+            self.graph.update(self.processor.data_history, self.current_experiment)
 
     def refresh_numeric_displays(self):
         """Actualiza los QLineEdit de tiempo y corriente a una velocidad legible."""
@@ -425,16 +443,7 @@ class PotentiostatController:
             
             self.view.CurrentScaleDisplay.setText(f"Scale Selected: {info['name']}")
             self.view.AmpGainDisplay.setText(f"Amplifier Gain: {info['gain_label']}")
-    """
-    def cambiar_escala(self, action_name):
-        if action_name in SCALES_CONFIG:
-            info = SCALES_CONFIG[action_name]
-            # 'multiplier' en tu protocol_defs.py representa la R de shunt (Ohms)
-            self.current_gain = float(info['multiplier']) 
-            
-            self.view.CurrentScaleDisplay.setText(f"Scale Selected: {info['name']}")
-            self.view.AmpGainDisplay.setText(f"Amplifier Gain: {info['gain_label']}")
-    """
+
     def obtener_parametros_activos(self):
         """Devuelve un diccionario con los valores de los SpinBoxes de la página actual"""
         if self.current_experiment == "NO_EXPERIMENT":
@@ -663,10 +672,8 @@ class PotentiostatController:
     def enviar_comando_uart(self, clave_comando):
         """
         Envía un comando predefinido al ESP32.
-        Uso: self.enviar_comando_uart("GET_BATTERY")
+        Uso: self.enviar_comando_uart("GET_STATE")
         """
-        # Importamos las definiciones para tener acceso a los strings
-        from modules.protocol_defs import COMANDOS_UART
         
         if clave_comando in COMANDOS_UART:
             comando_str = COMANDOS_UART[clave_comando]

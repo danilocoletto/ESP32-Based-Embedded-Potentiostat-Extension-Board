@@ -78,7 +78,7 @@ class PotenciostatoApp(QtWidgets.QMainWindow):
 
         # Conectar las acciones del menú Experiment
         self.actionSWV.triggered.connect(lambda: self.controller.seleccionar_experimento("actionSWV"))
-        self.actionLSV.triggered.connect(lambda: self.controller.seleccionar_experimento("actionLSV"))
+        self.actionLSV_CV.triggered.connect(lambda: self.controller.seleccionar_experimento("actionLSV/CV"))
         self.actionCPE.triggered.connect(lambda: self.controller.seleccionar_experimento("actionCPE"))
 
         self.actionReset_Instrument.triggered.connect(self.controller.reset_instrumento)
