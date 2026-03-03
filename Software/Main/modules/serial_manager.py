@@ -1,10 +1,29 @@
-import serial.tools.list_ports
+import os
+import time
 import serial
 import struct
-import time
-import os
+import logging
+import serial.tools.list_ports
 from PyQt6.QtCore import QThread, pyqtSignal
 from modules.protocol_defs import EXPERIMENT_CONFIG, COMANDOS_SISTEMA
+
+
+class ScannerWorker(QThread):
+    """Hilo dedicado al escaneo de puertos — no bloquea la UI."""
+    dispositivo_encontrado = pyqtSignal(str)   # emite el puerto: "COM3"
+    escaneo_fallido = pyqtSignal()             # emite si no encontró nada
+
+    def __init__(self, baud=921600):
+        super().__init__()
+        self.baud = baud
+
+    def run(self):
+        puerto = SerialScanner.encontrar_potenciostato(baud=self.baud)
+        if puerto:
+            self.dispositivo_encontrado.emit(puerto)
+        else:
+            self.escaneo_fallido.emit()
+
 
 
 class SerialScanner:
@@ -14,7 +33,7 @@ class SerialScanner:
         puertos = serial.tools.list_ports.comports()
         
         for p in puertos:
-            print(f"Trying Port {p.device} ...")
+            logging.info(f"Trying Port {p.device} ...")
             try:
                 # Intentamos abrir el puerto con un timeout muy corto para no colgar la app
                 ser = serial.Serial(p.device, baud, timeout=1)
@@ -29,7 +48,7 @@ class SerialScanner:
                 respuesta = ser.readline().decode('utf-8').strip()
                 
                 if respuesta == id_esperado:
-                    print(f"¡Device found in {p.device}!")
+                    logging.info(f"¡Device found in {p.device}!")
                     ser.close()
                     return p.device # Devolvemos el nombre del puerto (ej. "COM3")
                 
@@ -68,7 +87,7 @@ class SerialWorker(QThread):
                 # Opcional: asegurar que se envíe inmediatamente
                 self.ser_inst.flush() 
             except Exception as e:
-                print(f"Error al enviar datos por UART: {e}")
+                logging.error(f"Error while sending data throught UART: {e}")
 
     def stop(self):
         """Detiene el bucle del hilo de forma segura"""
@@ -107,7 +126,7 @@ class SerialWorker(QThread):
                         if len(payload) == config["size"]:
                             valores = struct.unpack(config["format"], payload)
                             self.ser_inst.read(1)
-                            print(f"DEBUG UART RX -> Técnica: {config['nombre']} | Formato: {config['format']} | Datos: {valores}")
+                            logging.debug(f"DEBUG UART RX -> Técnica: {config['nombre']} | Formato: {config['format']} | Datos: {valores}")
                             timestamp = time.time() - self.start_time
                             
                             data_dict = {
@@ -137,7 +156,7 @@ class SerialWorker(QThread):
                 self.ser_inst.close()
 
         except Exception as e:
-            print(f"Error crítico en el hilo SerialWorker: {e}")
+            logging.error(f"Critical Error in SerialWorker Thread: {e}")
             import traceback
             traceback.print_exc()
         finally:
@@ -152,7 +171,7 @@ class SerialWorker(QThread):
                 self._backup_file.write(f"[{data['timestamp']}] {data['tipo']}: {data['valores']}\n")
                 # flush() periódico lo maneja el timer, no acá
             except Exception as e:
-                print(f"Error escribiendo backup: {e}")
+                logging.error(f"Error while writing backup file: {e}")
 
 
     def resetear_archivo_respaldo(self):
@@ -162,7 +181,7 @@ class SerialWorker(QThread):
             self._backup_file = open(self.backup_path, "w")
             self._backup_file.write(f"--- Nuevo Ensayo Iniciado: {time.ctime()} ---\n")
         except Exception as e:
-            print(f"Error al abrir backup: {e}")
+            logging.error(f"Error while opening backup file: {e}")
             self._backup_file = None
 
 
@@ -173,7 +192,7 @@ class SerialWorker(QThread):
                 self._backup_file.flush()
                 self._backup_file.close()
             except Exception as e:
-                print(f"Error al cerrar backup: {e}")
+                logging.error(f"Error while closening backup file: {e}")
             finally:
                 self._backup_file = None
 

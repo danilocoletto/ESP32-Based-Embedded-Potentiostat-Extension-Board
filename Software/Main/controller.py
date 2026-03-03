@@ -1,17 +1,19 @@
 import csv
 import json
-import time  
+import time
+import logging
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QMessageBox, QFileDialog, QSpinBox, QDoubleSpinBox, QCheckBox, QLineEdit
 from modules.processor import DataProcessor, PotentiostatGraph
-from modules.serial_manager import SerialScanner, SerialWorker
+from modules.serial_manager import SerialScanner, SerialWorker, ScannerWorker
 from modules.protocol_defs import COMANDOS_SISTEMA, SCALES_CONFIG, EXPERIMENT_PAGES, PAQUETES_CONFIG, COMANDOS_UART
 
 class PotentiostatController:
     def __init__(self, view):
         self.view = view
         self.worker = None
+        self._scanner = None            # Referencia al hilo de escaneo activo
         self.comm_state = "IDLE" 
         self.retry_count = 0
         self.MAX_RETRIES = 2
@@ -59,7 +61,7 @@ class PotentiostatController:
     def iniciar_flujo_experimento(self):
         """Paso 1: Inicia el protocolo enviando READY_UP"""
         if not self.worker or not self.worker.isRunning():
-            print("Error: Sin conexión.")
+            logging.error("Error while starting: No connection.")
             return
 
         self.comm_state = "WAITING_READY_ACK"
@@ -70,7 +72,7 @@ class PotentiostatController:
         Maneja las respuestas ASCII del ESP32 gestionando la secuencia de:
         Handshake -> Configuración de Ganancia -> Configuración de Experimento -> Ejecución.
         """
-        print(f"ESP32 -> Command Sent: {clave} | Meaning - {descripcion}") 
+        logging.debug(f"ESP32 -> Command Sent: {clave} | Meaning - {descripcion}") 
 
         # --- GESTIÓN DE ESTADO DE ELECTRODOS (Independiente del flujo de experimento) ---
         if clave == "CELL1":
@@ -92,7 +94,7 @@ class PotentiostatController:
         # Paso 3: Validación de Ganancia (Ahora con comando específico CONF_GAIN_OK)
         elif clave == "CONF_GAIN_OK" and self.comm_state == "WAITING_GAIN_OK":
             # La ganancia se configuró en hardware, ahora esperamos el reporte GAINX
-            print("Gain Configured. Waiting for sync with hardware...")
+            logging.info("Gain Configured. Waiting for sync with hardware...")
             pass 
 
         elif clave.startswith("GAIN") and self.comm_state == "WAITING_GAIN_OK":
@@ -102,47 +104,57 @@ class PotentiostatController:
                 self.sincronizar_escala_por_id(id_recibido) 
                 
                 # Una vez sincronizada la ganancia en la UI, pasamos a configurar la técnica
-                print(f"UI Synchronized with Hardware (GAIN ID: {id_recibido}). Sending configuration for experiment...") 
+                logging.debug(f"GAIN ID Received: {id_recibido}")
+                logging.info(f"UI Synchronized with Hardware. Sending configuration for experiment...") 
                 self.comm_state = "WAITING_CONF_OK" # Cambiamos de estado antes de enviar
                 self.enviar_configuracion() 
             except ValueError:
-                print(f"Error processing gain ID: {clave}") 
-                self.reset_comm_flow() 
+                logging.error(f"Error processing gain ID: {clave}")
+                self.reset_comm_flow()
+                self.comm_state = "IDLE"
 
         # Paso 4: Confirmación de parámetros de la técnica (CONF_OK se queda para esto)
         elif clave == "CONF_OK" and self.comm_state == "WAITING_CONF_OK":
+            logging.info(f"Configuration OK. Experiment starting...")
             self.comm_state = "WAITING_EXECUTING" 
-            self.enviar_comando_uart("START") 
+            self.enviar_comando_uart("START")
 
         elif clave == "CONF_ERR":
             # Manejo de error tanto en ganancia como en técnica
             if self.retry_count < self.MAX_RETRIES:
                 self.retry_count += 1
-                print(f"Configuration Error. Retry {self.retry_count}...") 
+                logging.error(f"Configuration Error. Retry {self.retry_count}...") 
                 # Dependiendo de dónde falló, reintentamos uno u otro
                 if self.comm_state == "WAITING_GAIN_OK":
                     self.enviar_configuracion_ganancia()
                 else:
                     self.enviar_configuracion()
             else:
-                print("Fallo crítico de configuración. Abortando flujo.") 
-                self.reset_comm_flow() 
+                logging.error("Critical failure in configuration process. Aborting experiment.")
+                self.reset_comm_flow()
+                self.comm_state = "IDLE" 
 
         # Paso 5: Ejecución y Finalización
         elif clave == "EXECUTING" and self.comm_state == "WAITING_EXECUTING":
-            self.iniciar_logica_ui_experimento() 
+            self.comm_state = "RUNNING"
+            self.iniciar_logica_ui_experimento()
 
-        elif clave == "FINISHED":
+        elif clave == "FINISHED"  and self.comm_state == "RUNNING":
+            self.comm_state = "FINISHING"           # ← esperamos el WAITING de la ESP
             self.progress_timer.stop() 
             self.view.progressBar.setValue(100) 
-            self.graph_update_timer.stop()  # ← Congela el gráfico al terminar
+            self.graph_update_timer.stop()          # ← Congela el gráfico al terminar
             self.display_update_timer.stop()
 
             if self.worker:
                 self.worker.cerrar_archivo_respaldo()  # ← flush y cierre al terminar
+            
+            logging.info(f"Experiment Finished.")
 
-        elif clave == "WAITING":
+        elif clave == "WAITING" and self.comm_state == "FINISHING":
             self.reset_comm_flow()
+            self.comm_state = "IDLE"
+            logging.info("Device back to idle. Ready for next experiment.")
 
 
     def enviar_configuracion_ganancia(self):
@@ -156,7 +168,7 @@ class PotentiostatController:
                 gain_id = config['id_hardware']
                 break
         
-        print(f"Sending Gain ID: {gain_id}")
+        logging.debug(f"Sending Gain ID: {gain_id}")
         self.worker.enviar_datos(f"SET_GAIN:{gain_id}\n")
 
     def sincronizar_escala_por_id(self, id_hw):
@@ -175,7 +187,6 @@ class PotentiostatController:
 
 
     def reset_comm_flow(self):
-        self.comm_state = "IDLE"
         self.retry_count = 0
         self.progress_timer.stop()
         self.graph_update_timer.stop()   
@@ -187,7 +198,7 @@ class PotentiostatController:
         self.total_experiment_time = self.calcular_tiempo_total()
 
         if self.total_experiment_time <= 0:
-            print("Advertencia: El tiempo estimado es 0. Ajustando a 1s para evitar error.")
+            logging.warning("Warning: The estimated time is 0. Adjusting to 1 seg to avoid error.")
             self.total_experiment_time = 1.0
 
         self.view.progressBar.setValue(0)
@@ -270,7 +281,7 @@ class PotentiostatController:
             t_sweep = distancia_total / scan_rate if scan_rate != 0 else 0
             t_total = t_quiet + t_sweep
 
-        print(f"Tiempo estimado de ensayo: {t_total:.2f} segundos.")
+        logging.debug(f"Estimated experiment time: {t_total:.2f} seconds.")
         return t_total
 
     def update_progress_bar(self):
@@ -305,12 +316,12 @@ class PotentiostatController:
             # Cambiar físicamente la página en la interfaz
             self.graph.set_experiment_mode(action_name)
             self.view.stackedWidget.setCurrentIndex(config["index"])
-            print(f"Selected Experiment: {config['nombre']}")
+            logging.debug(f"Selected Experiment: {config['nombre']}")
 
     
     def reset_instrumento(self):
         """Envía RESET y comienza bucle de autoconexión."""
-        print("Enviando comando de RESET...")
+        logging.debug("Sending RESET command...")
         self.enviar_comando_uart("RESET")
         
         # Resetear estados internos locales
@@ -330,44 +341,39 @@ class PotentiostatController:
         
         self.view.actualizar_ui_conexion("SEARCHING", "Status: RECONNECTING")
         
-        # Usamos el Scanner que ya tienes
-        puerto = SerialScanner.encontrar_potenciostato()
-        
-        if puerto:
-            print(f"Succesful reconnection in {puerto}")
-            self.iniciar_comunicacion(puerto)
-            # El worker al iniciar disparará el evento de CONNECTED en la UI
-            self.view.actualizar_ui_conexion("CONNECTED", "Status: CONNECTED")
-        else:
-            print("Device not found yet,retrying in 2s...")
-            # Si no lo encuentra, vuelve a llamar a esta función en 2 segundos
-            QTimer.singleShot(2000, self.intentar_autoconexion_bucle)
+        self._scanner = ScannerWorker(baud=921600)
+        self._scanner.dispositivo_encontrado.connect(self._on_dispositivo_encontrado)
+        self._scanner.escaneo_fallido.connect(
+            lambda: QTimer.singleShot(2000, self.intentar_autoconexion_bucle)  # reintenta en 2s
+        )
+        self._scanner.start()
 
     def auto_conectar(self):
         """Lógica de escaneo y conexión automática"""
         self.view.actualizar_ui_conexion("SEARCHING", "Status:   SCANNING...")
-        
-        id_potenciostato = COMANDOS_SISTEMA["ID"]
-        puerto = SerialScanner.encontrar_potenciostato(baud=921600, id_esperado=id_potenciostato)
-        
-        if puerto:
-            self.iniciar_comunicacion(puerto)
-            #self.view.actualizar_ui_conexion("CONNECTED", "Status:   CONNECTED")
-            self.view.actualizar_ui_conexion("CONNECTED", f"Status:   CONNECTED ({puerto})")
-            return True
-        else:
-            self.view.actualizar_ui_conexion("DISCONNECTED", "Status:   NOT FOUND")
-            return False
+
+        self._scanner = ScannerWorker(baud=921600)
+        self._scanner.dispositivo_encontrado.connect(self._on_dispositivo_encontrado)
+        self._scanner.escaneo_fallido.connect(self._on_escaneo_fallido)
+        self._scanner.start()
+            
+    def _on_dispositivo_encontrado(self, puerto):
+        self.iniciar_comunicacion(puerto)
+        self.view.actualizar_ui_conexion("CONNECTED", f"Status:   CONNECTED ({puerto})")
+
+    def _on_escaneo_fallido(self):
+        self.view.actualizar_ui_conexion("DISCONNECTED", "Status:   NOT FOUND")
 
     def iniciar_comunicacion(self, puerto):
         """Gestiona el ciclo de vida del hilo SerialWorker"""
         if self.worker and self.worker.isRunning():
             self.worker.stop()
             self.worker.wait()
+            self.worker.dato_procesado.disconnect()
+            self.worker.comando_texto.disconnect()
 
         self.worker = SerialWorker(puerto, 921600)
         self.worker.dato_procesado.connect(self.dispatch_data)
-
         self.worker.comando_texto.connect(self.handle_system_command) 
 
         if self.worker:
@@ -492,9 +498,9 @@ class PotentiostatController:
                     if self.processor.data_history:
                         writer.writerows(self.processor.data_history)
                 
-                print("CSV guardado exitosamente (podría estar vacío).")
+                logging.debug("CSV succesfully saved.")
             except Exception as e:
-                print(f"Error saving CSV: {e}")
+                logging.error(f"Error saving CSV: {e}")
 
     def guardar_grafico_imagen(self):
         """Guarda la vista actual del gráfico. Permite guardar el canvas vacío."""
@@ -506,9 +512,9 @@ class PotentiostatController:
             try:
                 # El exportador de pyqtgraph guardará el estado actual del widget 
                 self.graph.export_image(file_path)
-                print("Imagen del gráfico guardada exitosamente.")
+                logging.debug("Graphic image succesfully saved.")
             except Exception as e:
-                print(f"Error saving Image: {e}")
+                logging.error(f"Error saving Image: {e}")
 
     def guardar_configuracion_ui(self):
         """
@@ -560,10 +566,10 @@ class PotentiostatController:
                 with open(file_path, 'w') as f:
                     json.dump(config_to_save, f, indent=4)
                 QtWidgets.QMessageBox.information(self.view, "Success", "Configuration Saved Succesfully.")
-                print("Success", "Configuration Saved Succesfully.")
+                logging.debug("Success", "Configuration Succesfully Saved.")
             except Exception as e:
                 QtWidgets.QMessageBox.critical(self.view, "Error", f"Unable to save configuration: {e}")
-                print(f"Save Error. Unable to save configuration: {e}")
+                logging.error(f"Save Error. Unable to save configuration: {e}")
 
 
     def cargar_configuracion_ui(self):
@@ -572,13 +578,24 @@ class PotentiostatController:
             self.view, "Load Configuration", "", "Config Files (*.json)"
         )
 
-        if not file_path: return
+        if not file_path: 
+            return
 
         try:
             with open(file_path, 'r') as f:
                 config = json.load(f)
 
-            # 1. Recuperar el ID del experimento
+            # ── VALIDACIÓN DE FORMATO ──────────────────────────────────────
+            valido, motivo = self._validar_configuracion(config)
+            if not valido:
+                QtWidgets.QMessageBox.warning(
+                    self.view, "Invalid Configuration File",
+                    f"The file could not be loaded because its format is invalid.\n\nReason: {motivo}"
+                )
+                logging.warning(f"Configuration file rejected: {motivo} | File: {file_path}")
+                return
+            # ──────────────────────────────────────────────────────────────
+
             exp_id = config.get("experiment_id")
             exp_name = config.get("experiment_name")
             if exp_id and exp_id in EXPERIMENT_PAGES:
@@ -586,12 +603,9 @@ class PotentiostatController:
             elif "page_index" in config:
                 self.view.stackedWidget.setCurrentIndex(config["page_index"])
 
-            # --- NUEVO: Restaurar la escala seleccionada automáticamente ---
             if "selected_scale_id" in config:
-                scale_id = config["selected_scale_id"]
-                self.sincronizar_escala_por_id(scale_id)
+                self.sincronizar_escala_por_id(config["selected_scale_id"])
 
-            # 2. Restaurar parámetros de los widgets
             params = config.get("parameters", {})
             for name, value in params.items():
                 widget = self.view.findChild(QtWidgets.QWidget, name)
@@ -602,13 +616,53 @@ class PotentiostatController:
                         widget.setChecked(value)
                     elif isinstance(widget, QLineEdit):
                         widget.setText(str(value))
-            
+
             QtWidgets.QMessageBox.information(self.view, "Load", f"Configuration for '{exp_name}' loaded with success.")
-            print(f"Configuration for '{exp_name}' loaded succesfully")
-            
+            logging.debug(f"Configuration for '{exp_name}' loaded successfully")
+
+        except json.JSONDecodeError as e:
+            # Archivo que no es JSON válido en absoluto
+            QtWidgets.QMessageBox.critical(
+                self.view, "Load Error",
+                f"The file is not a valid JSON file.\n\nDetail: {e}"
+            )
+            logging.error(f"JSON parse error loading config: {e}")
         except Exception as e:
             QtWidgets.QMessageBox.critical(self.view, "Load Error", f"Detail: {e}")
-            print(f"Load Error. Detail: {e}")
+            logging.error(f"Load Error. Detail: {e}")
+
+
+    def _validar_configuracion(self, config):
+        """
+        Verifica que el archivo JSON tenga el formato esperado antes de cargarlo.
+        Retorna (True, None) si es válido, o (False, motivo) si no lo es.
+        """
+        # Campos obligatorios
+        campos_requeridos = ["experiment_id", "experiment_name", "page_index", "parameters"]
+        for campo in campos_requeridos:
+            if campo not in config:
+                return False, f"Missing required field: '{campo}'"
+
+        # El experimento debe ser uno de los conocidos
+        if config["experiment_id"] not in EXPERIMENT_PAGES:
+            return False, f"Unknown experiment ID: '{config['experiment_id']}'"
+
+        # page_index debe ser un entero válido
+        if not isinstance(config["page_index"], int):
+            return False, f"'page_index' must be an integer, got: {type(config['page_index']).__name__}"
+
+        # parameters debe ser un diccionario
+        if not isinstance(config["parameters"], dict):
+            return False, f"'parameters' must be a dictionary, got: {type(config['parameters']).__name__}"
+
+        # selected_scale_id si existe debe ser un entero conocido
+        if "selected_scale_id" in config:
+            scale_id = config["selected_scale_id"]
+            ids_validos = [s["id_hardware"] for s in SCALES_CONFIG.values()]
+            if not isinstance(scale_id, int) or scale_id not in ids_validos:
+                return False, f"Invalid scale ID: '{scale_id}'"
+
+        return True, None
 
 
     def preparar_paquete_configuracion(self):
@@ -657,7 +711,7 @@ class PotentiostatController:
         paquete_final = f"{header}:{','.join(valores)}\n"
 
         # Depuración para verificar lo que sale hacia el ESP32
-        print(f"\n[DEBUG TX] Paquete de Configuración: {paquete_final.strip()}")
+        logging.debug(f"\n[DEBUG TX] Paquete de Configuración: {paquete_final.strip()}")
         
         return paquete_final
     
@@ -674,18 +728,18 @@ class PotentiostatController:
             if self.worker and self.worker.isRunning():
                 # Enviamos el comando a través del worker
                 self.worker.enviar_datos(comando_str)
-                print(f"Python Command Sent -> {comando_str.strip()}")
+                logging.debug(f"Python Command Sent -> {comando_str.strip()}")
             else:
-                print("Error: There is no active serial connection at the momment.")
+                logging.error("Error: There is no active serial connection at the momment.")
         else:
-            print(f"Error: The command '{clave_comando}' doesn't exist.")
+            logging.error(f"Error: The command '{clave_comando}' doesn't exist.")
 
     def limpiar_experimento_completo(self):
         """Reinicia el procesador, el gráfico y la barra de progreso."""
         self.processor.clear_data()
         self.graph.clear_graph()
         self.view.progressBar.setValue(0)
-        print("Graphic and Data Historial Reset.")
+        logging.debug("Graphic and Data Historial Reset.")
 
     
     def tiene_datos_pendientes(self):

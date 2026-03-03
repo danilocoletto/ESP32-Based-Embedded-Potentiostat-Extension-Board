@@ -1,11 +1,22 @@
 import sys
 import os
 import ctypes
+import logging
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMessageBox
 from controller import PotentiostatController
+
+
+# Cambiar a logging.DEBUG para ver todos los mensajes, logging.WARNING para silenciarlos en producción
+
+#logging.basicConfig(level=logging.DEBUG, format='%(message)s')    # desarrollo — muestra todo
+logging.basicConfig(level=logging.INFO, format='%(message)s')     # prudcción —  muestra info también
+#logging.basicConfig(level=logging.WARNING, format='%(message)s')  # producción — solo errores
+
+# pero para lo que venga de PyQt6 usá WARNING
+logging.getLogger('PyQt6').setLevel(logging.INFO)
 
 try:
     myappid = 'giaqa.potentiostat.v2'
@@ -19,7 +30,7 @@ class PotenciostatoApp(QtWidgets.QMainWindow):
         
     # --- GESTIÓN DE RUTAS DINÁMICAS ---
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        ui_path = os.path.join(base_dir, 'gui', 'main_windows_gui.ui')
+        ui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gui', 'main_windows_gui.ui')
         
         # Rutas de los dos logos
         ruta_icono_ventana = os.path.join(base_dir, 'logos', 'logo_GIAQA_blanca.png') # El de la barra/esquina
@@ -41,7 +52,7 @@ class PotenciostatoApp(QtWidgets.QMainWindow):
             icono_cuadrado = pix_icono.copy(rect)
             self.setWindowIcon(QIcon(icono_cuadrado))
         else:
-            print(f"No se encontró el icono de ventana en: {ruta_icono_ventana}")
+            logging.warning(f"The window icon was not found in: {ruta_icono_ventana}")
 
         # --- PASO 3: CONFIGURAR LOGO INTERNO (SVG) ---
         if os.path.exists(ruta_logo_interno):
@@ -57,7 +68,7 @@ class PotenciostatoApp(QtWidgets.QMainWindow):
             ))
             self.LabelLogoInterno.setAlignment(Qt.AlignmentFlag.AlignCenter)
         else:
-            print(f"No se encontró el logo SVG en: {ruta_logo_interno}")
+            logging.warning(f"The SVG logo was not found in: {ruta_logo_interno}")
 
 
 
@@ -107,14 +118,14 @@ class PotenciostatoApp(QtWidgets.QMainWindow):
     def start_experiment(self):
         if self.controller.current_experiment != "NO_EXPERIMENT":
             # Iniciamos el flujo de Handshakes
-            print("Start Button Pressed")
+            logging.debug("Start Button Pressed")
             self.init_button.setEnabled(False)
             self.controller.limpiar_experimento_completo()
             self.controller.iniciar_flujo_experimento()
 
     def stop_experiment(self):
         # El comando STOP (ABORT\n) es prioritario y rompe cualquier estado
-        print("Stop Button Pressed")
+        logging.debug("Stop Button Pressed")
         self.controller.enviar_comando_uart("STOP")
         self.controller.reset_comm_flow()
 
@@ -129,7 +140,7 @@ class PotenciostatoApp(QtWidgets.QMainWindow):
             
         elif estado == "SEARCHING":
             # Color naranja o azul suave para indicar que está "reintentando"
-            self.StatusDisplay.setStyleSheet("background-color: #FDE68A; border-radius: 0px; color: #92400E; font-weight: bold;")
+            self.StatusDisplay.setStyleSheet("background-color: #FDE68A; border-radius: 0px; border: 1px solid #D97706; color: #92400E; font-weight: bold;")
             self.init_button.setEnabled(False)
             
         else: # DISCONNECTED

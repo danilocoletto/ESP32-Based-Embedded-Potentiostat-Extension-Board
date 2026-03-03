@@ -78,7 +78,7 @@ class PotentiostatGraph:
         self.plot.getAxis('bottom').enableAutoSIPrefix(False)
 
         # Curves: Raw (Steel Blue) and Filtered (Red)
-        #self.curve_raw = self.plot.plot(pen=pg.mkPen(color="#0078D4", width=1.5), symbol=None)
+        self.curve_raw = self.plot.plot(pen=pg.mkPen(color="#0078D4", width=1.5), symbol=None)
         self.curve_filtered = self.plot.plot(pen=pg.mkPen('r', width=2))
         
         # Initial labels
@@ -131,7 +131,7 @@ class PotentiostatGraph:
         self.plot.getAxis('left').setLabel('Current', units=unit)
         
         # Cargamos los datos en las curvas
-        #self.curve_raw.setData(x_data, i_ma * mult)
+        self.curve_raw.setData(x_data, i_ma * mult)
         self.curve_filtered.setData(x_data, i_filt_ma * mult)
         
         self.plot.autoRange(padding=0.05)
@@ -143,5 +143,5 @@ class PotentiostatGraph:
     
     def clear_graph(self):
         """Clears curves """
-        #self.curve_raw.setData([], [])
+        self.curve_raw.setData([], [])
         self.curve_filtered.setData([], [])
