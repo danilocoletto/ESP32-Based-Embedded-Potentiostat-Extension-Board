@@ -1,8 +1,9 @@
 import csv
+import json
 import time  
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import QTimer
-from PyQt6.QtWidgets import QFileDialog, QSpinBox, QDoubleSpinBox, QCheckBox, QLineEdit
+from PyQt6.QtWidgets import QMessageBox, QFileDialog, QSpinBox, QDoubleSpinBox, QCheckBox, QLineEdit
 from modules.processor import DataProcessor, PotentiostatGraph
 from modules.serial_manager import SerialScanner, SerialWorker
 from modules.protocol_defs import COMANDOS_SISTEMA, SCALES_CONFIG, EXPERIMENT_PAGES, PAQUETES_CONFIG, COMANDOS_UART
@@ -136,7 +137,6 @@ class PotentiostatController:
             self.view.progressBar.setValue(100) 
             self.graph_update_timer.stop()  # ← Congela el gráfico al terminar
             self.display_update_timer.stop()
-            self.display_update_timer.stop()
 
             if self.worker:
                 self.worker.cerrar_archivo_respaldo()  # ← flush y cierre al terminar
@@ -178,6 +178,8 @@ class PotentiostatController:
         self.comm_state = "IDLE"
         self.retry_count = 0
         self.progress_timer.stop()
+        self.graph_update_timer.stop()   
+        self.display_update_timer.stop()
         self.view.init_button.setEnabled(True)
 
     def iniciar_logica_ui_experimento(self):
@@ -292,7 +294,6 @@ class PotentiostatController:
         """Cambia la técnica solo si no hay un experimento en curso."""
         # BLOQUEO DE SEGURIDAD
         if self.comm_state != "IDLE":
-            from PyQt6.QtWidgets import QMessageBox
             QMessageBox.warning(self.view, "Action Denied", 
                 "An experiment is currently running. Stop it before switching techniques.")
             return
@@ -323,18 +324,22 @@ class PotentiostatController:
 
     def intentar_autoconexion_bucle(self):
         """Intenta conectar recursivamente hasta tener éxito."""
+
+        if self.worker and self.worker.isRunning():
+            return  # Ya se reconectó, cancelar este bucle
+        
         self.view.actualizar_ui_conexion("SEARCHING", "Status: RECONNECTING")
         
         # Usamos el Scanner que ya tienes
         puerto = SerialScanner.encontrar_potenciostato()
         
         if puerto:
-            print(f"Reconexión exitosa en {puerto}")
+            print(f"Succesful reconnection in {puerto}")
             self.iniciar_comunicacion(puerto)
             # El worker al iniciar disparará el evento de CONNECTED en la UI
             self.view.actualizar_ui_conexion("CONNECTED", "Status: CONNECTED")
         else:
-            print("Dispositivo no encontrado aún, reintentando en 2s...")
+            print("Device not found yet,retrying in 2s...")
             # Si no lo encuentra, vuelve a llamar a esta función en 2 segundos
             QTimer.singleShot(2000, self.intentar_autoconexion_bucle)
 
@@ -386,6 +391,9 @@ class PotentiostatController:
             # CV ya envía la corriente neta o el valor directo en vals[1]
             v_adc_diff = vals[1]
 
+        elif tipo == "Controlled Potential Electrolysis":
+            v_adc_diff = vals[2]  # vals[0]=index, vals[1]=voltage, vals[2]=current
+
         # PROCESAMIENTO
         sample = self.processor.process_sample(t, v_applied, v_adc_diff, self.current_gain)
 
@@ -426,7 +434,6 @@ class PotentiostatController:
         """
         # --- BLOQUEO DE SEGURIDAD ---
         if self.comm_state != "IDLE":
-            from PyQt6.QtWidgets import QMessageBox
             QMessageBox.warning(
                 self.view, 
                 "Operation Denied", 
@@ -530,7 +537,6 @@ class PotentiostatController:
         }
 
         page_widget = self.view.stackedWidget.widget(exp_info["index"])
-        from PyQt6.QtWidgets import QSpinBox, QDoubleSpinBox, QCheckBox, QLineEdit
 
         for widget in page_widget.findChildren((QSpinBox, QDoubleSpinBox, QCheckBox, QLineEdit)):
             name = widget.objectName()
@@ -551,7 +557,6 @@ class PotentiostatController:
 
         if file_path:
             try:
-                import json
                 with open(file_path, 'w') as f:
                     json.dump(config_to_save, f, indent=4)
                 QtWidgets.QMessageBox.information(self.view, "Success", "Configuration Saved Succesfully.")
@@ -570,7 +575,6 @@ class PotentiostatController:
         if not file_path: return
 
         try:
-            import json
             with open(file_path, 'r') as f:
                 config = json.load(f)
 
@@ -656,18 +660,7 @@ class PotentiostatController:
         print(f"\n[DEBUG TX] Paquete de Configuración: {paquete_final.strip()}")
         
         return paquete_final
-
-    def _obtener_valor_widget(self, widget):
-        """Función auxiliar para normalizar valores de widgets a string"""
-        if not widget: return "0"
-        
-        if hasattr(widget, 'value'): # SpinBoxes
-            return str(widget.value())
-        elif hasattr(widget, 'isChecked'): # CheckBoxes
-            return "1" if widget.isChecked() else "0"
-        elif hasattr(widget, 'text'): # LineEdits
-            return widget.text()
-        return "0"
+    
     
     def enviar_comando_uart(self, clave_comando):
         """
@@ -683,9 +676,9 @@ class PotentiostatController:
                 self.worker.enviar_datos(comando_str)
                 print(f"Python Command Sent -> {comando_str.strip()}")
             else:
-                print("Error: No hay una conexión serie activa.")
+                print("Error: There is no active serial connection at the momment.")
         else:
-            print(f"Error: El comando '{clave_comando}' no existe en el protocolo.")
+            print(f"Error: The command '{clave_comando}' doesn't exist.")
 
     def limpiar_experimento_completo(self):
         """Reinicia el procesador, el gráfico y la barra de progreso."""
@@ -707,6 +700,11 @@ class PotentiostatController:
 
     def cerrar_recursos(self):
         """Detiene hilos y cierra puertos antes de salir."""
+
+        self.display_update_timer.stop()
+        self.graph_update_timer.stop()
+        self.progress_timer.stop()
+
         if self.worker:
             self.worker.stop()
             self.worker.wait()
