@@ -1,11 +1,7 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-//#include "freertos/FreeRTOS.h"
-//#include "freertos/task.h"
-//#include "esp_log.h"
-//#include "esp_attr.h"
-//#include "esp_rom_sys.h"
+
+#include "esp_wifi.h"
+//#include "esp_bt.h"
+
 
 // Tus librerías
 #include "gpio_config.h"
@@ -108,169 +104,6 @@ void procesar_comando_completo(int comando) {
 }
 
 
-// --- MAIN ---
-/*void app_main(void)
-{
-    // Inicializar UART
-    init_uart();
-    config_pin(GREEN_LED, GPIO_MODE_OUTPUT, GPIO_PULLUP_DISABLE, GPIO_PULLDOWN_ENABLE, GPIO_INTR_DISABLE);
-    MAX4737_Config_Pins();
-    MAX4617_Config_Pins();
-    gpio_set_level(MAX4737_CE_EN, HIGH);
-    gpio_set_level(MAX4737_RE_FB_EN, HIGH);
-    gpio_set_level(MAX4737_WE_EN, HIGH);
-
-    MAX4617_Set_Gain(GAIN4_300K);
-
-    // --- INICIALIZACIÓN DAC MAX5217 ---
-    ESP_LOGI(TAG, "Configurando DAC MAX5217...");
-    uart_wait_tx_done(UART_NUM_0, 100); // Wait up to 1000ms
-
-    MAX5217_DAC_Setup_HAL();
-
-    vTaskDelay(pdMS_TO_TICKS(100));
-    ESP_LOGI(TAG, "Inicializando ADS1255...");
-    ADS125X_INIT_HAL(ADS125X_DRATE_30000SPS, ADS125X_PGA1, ADS125X_BUFOFF);
-    vTaskDelay(pdMS_TO_TICKS(100)); // Pequeña espera
-    ADS125X_STANDBY_HAL();
-    ESP_LOGI(TAG, "Sistema Listo. Escriba numero + ENTER (Ej: '10' o '12').");
-
-    ESP_LOGI(TAG, "Sistema Listo. Generando onda en DAC...");
-    // Variables UART
-    uint8_t data[1]; 
-    char rx_buffer[UART_RX_BUFFER_SIZE];
-    int rx_index = 0;
-    
-    // Variables LED
-    int led_state = 0;
-    const int blink_period_ms = 500;
-    int ms_counter = 0;
-
-    // Variables para Generación de Onda (Triangular)
-    double wave_volt = 0.0;
-    double wave_step = 50.0; // Saltos de 50mV cada ~10ms
-
-// --- BUCLE PRINCIPAL ---
-    while (1) {
-        // A. Lectura de UART (Timeout 10ms - Marca el ritmo del bucle)
-        int len = uart_read_bytes(UART_PORT_NUM, data, 1, 10 / portTICK_PERIOD_MS);
-
-        if (len > 0) {
-            char c = (char)data[0];
-            if (c == '\n' || c == '\r') {
-                if (rx_index > 0) {
-                    rx_buffer[rx_index] = '\0';
-                    int comando_num = atoi(rx_buffer);
-                    if (comando_num > 0) procesar_comando_completo(comando_num);
-                    rx_index = 0;
-                }
-            } else {
-                if (rx_index < UART_RX_BUFFER_SIZE - 1) rx_buffer[rx_index++] = c;
-                else rx_index = 0;
-            }
-        }
-
-        // B. Generación de Onda Cíclica (DAC)
-        // Se actualiza cada ciclo del while (aprox cada 10ms debido al timeout del UART)
-    
-        wave_volt += wave_step;
-            
-        // Límites para oscilar entre -2500mV y +2500mV (Rango completo del DAC según tu lib)
-        if (wave_volt >= 2500.0) {
-            wave_volt = 2500.0;
-            wave_step = -wave_step; // Invertir dirección
-        } else if (wave_volt <= -2500.0) {
-            wave_volt = -2500.0;
-            wave_step = -wave_step; // Invertir dirección
-        }
-            
-        // Escribir al DAC
-        MAX5217_DAC_WRITE_HAL_MV(wave_volt);
-        
-
-        // C. Parpadeo del LED
-        ms_counter += 10; 
-        if (ms_counter >= blink_period_ms) {
-            led_state = !led_state;
-            gpio_set_level(GREEN_LED, led_state);
-            ms_counter = 0;
-        }
-        ADS125X_WAKEUP_HAL();
-        ADS125X_WAIT_DYDR_HAL();
-        float voltage = ADS125X_READVOLT_HAL();
-        ADS125X_STANDBY_HAL();
-        //printf("ADC Sample Voltage: %f V\n", voltage);
-        printf("%f\n", voltage);
-    }
-}*/
-
-
-
-// --- MAIN ---
-/*void app_main(void)
-{
-    // Inicializar UART
-    init_uart();
-    config_pin(GREEN_LED, GPIO_MODE_OUTPUT, GPIO_PULLUP_DISABLE, GPIO_PULLDOWN_ENABLE, GPIO_INTR_DISABLE);
-    MAX4737_Config_Pins();
-    MAX4617_Config_Pins();
-    gpio_set_level(MAX4737_CE_EN, LOW);
-    gpio_set_level(MAX4737_RE_FB_EN, LOW);
-    gpio_set_level(MAX4737_WE_EN, LOW);
-
-    MAX4617_Set_Gain(GAIN5_3M);
-
-    // --- INICIALIZACIÓN DAC MAX5217 ---
-    ESP_LOGI(TAG, "Configurando DAC MAX5217...");
-    uart_wait_tx_done(UART_NUM_0, 100); // Wait up to 1000ms
-
-    MAX5217_DAC_Setup_HAL();
-    vTaskDelay(pdMS_TO_TICKS(100));
-
-    ESP_LOGI(TAG, "Inicializando ADS1255...");
-    ADS125X_INIT_HAL(ADS125X_DRATE_30000SPS, ADS125X_PGA1, ADS125X_BUFOFF);
-    vTaskDelay(pdMS_TO_TICKS(100)); 
-    ADS125X_STANDBY_HAL();
-    ESP_LOGI(TAG, "Sistema Listo.");
-
-    SWV_config experiment_swv1;
-    LSV_CV_config experiment_cv1;
-
-    // Variables LED
-    int led_state = 0;
-
-    experiment_swv1.initial_pot_mv = (int16_t) -1000;
-    experiment_swv1.final_pot_mv = (int16_t) -200;
-    experiment_swv1.freq_hz = 40;
-    experiment_swv1.pulse_amplitude_mv = 25;
-    experiment_swv1.step_pot_mv = 2;
-    experiment_swv1.quiet_time_s = 2;
-
-    experiment_cv1.initial_pot_mv = (int16_t) -1000;
-    experiment_cv1.switching_pot1_mv = (int16_t) 500;
-    experiment_cv1.switching_pot2_mv = (int16_t) -1000;
-    experiment_cv1.final_pot_mv = (int16_t) 500;
-    experiment_cv1.segments = 10;
-    experiment_cv1.scan_rate_mv_s = 100;
-    experiment_cv1.quiet_time_s = 10;
-
-
-    //vTaskDelay(pdMS_TO_TICKS(10000));
-    //if (execute_SWV_experiment(&experiment_swv1) == 0)
-    if (execute_LSV_CV_experiment(&experiment_cv1) == 0)
-        printf("Experiment executed with success \n");
-
-    while (1) 
-    {
-
-        led_state = !led_state;
-        gpio_set_level(GREEN_LED, led_state);
-        vTaskDelay(pdMS_TO_TICKS(500));
-        //if (execute_SWV_experiment(&experiment_swv1) == 0)
-            //printf("Experiment executed with success \n");
-    }
-}*/
-
 
 TaskHandle_t xTaskUARTControlHandle = NULL;
 potentiostat_fsm_t* main_fsm;
@@ -338,6 +171,8 @@ void app_main(void)
 
     // Inicializar UART
     init_UART();
+    esp_wifi_stop();
+    //esp_bt_controller_disable();
     main_fsm = get_fsm_pointer();
     init_FSM(main_fsm);
     config_pin(GREEN_LED, GPIO_MODE_OUTPUT, GPIO_PULLUP_DISABLE, GPIO_PULLDOWN_ENABLE, GPIO_INTR_DISABLE);
@@ -388,7 +223,7 @@ void app_main(void)
         "EXP_CONTROL_TASK",      // Nombre
         8192,                   // Stack size (más grande por procesamiento)
         NULL,                   // Parámetros
-        20,                     // Prioridad máxima (Crítica para el timing)
+        configMAX_PRIORITIES - 1,                     // Prioridad máxima (Crítica para el timing)
         get_ExpControlTask_pointer(),                   // Handle
         1                       // <--- PINNED TO CORE 1
     );

@@ -426,6 +426,24 @@ uint8_t execute_LSV_CV_experiment(LSV_CV_config *config)
     // 2. CONFIGURACIÓN DE TIEMPO
     uint32_t step_delay_us = (uint32_t)((res * 1000000.0f) / config->scan_rate_mv_s);
 
+    /*uint8_t drate;
+    if(config->scan_rate_mv_s > 1000) 
+        drate = ADS125X_DRATE_30000SPS; // único que alcanza
+    else if (config->scan_rate_mv_s >  500) 
+        drate = ADS125X_DRATE_7500SPS;  // ~17 bits efectivos
+    else if (config->scan_rate_mv_s >  200) 
+        drate = ADS125X_DRATE_3750SPS;  // ~18 bits efectivos
+    else if (config->scan_rate_mv_s >   50) 
+        drate = ADS125X_DRATE_1000SPS;  // ~20 bits efectivos
+    else if (config->scan_rate_mv_s >   20) 
+        drate = ADS125X_DRATE_100SPS;   // ~22 bits efectivos
+    else                                    
+        drate = ADS125X_DRATE_30SPS;     // ~23 bits efectivos
+
+    ADS125X_SET_DRATE_HAL(drate);
+    // Esperar settling time del filtro sinc tras cambio de drate (~1 ciclo de conversión)
+    vTaskDelay(pdMS_TO_TICKS(10));*/
+
     ADS125X_WAKEUP_HAL();
     VOLT_EXP_START();
     MAX5217_DAC_WRITE_HAL_MV((int16_t)roundf(current_v));
@@ -459,9 +477,6 @@ uint8_t execute_LSV_CV_experiment(LSV_CV_config *config)
             pkt.voltage_meas  = ADS125X_READVOLT_HAL();
             
             uart_write_bytes(UART_NUM_0, &pkt, sizeof(lsv_cv_packet_t));
-            //uart_write_bytes(UART_NUM_0, HEADER_LSV, HEADER_LSV_SIZE);
-            //uart_write_bytes(UART_NUM_0, &pkt, sizeof(pkt));
-            //uart_write_bytes(UART_NUM_0, PACKET_TAIL, TAIL_SIZE);
             
             int64_t elapsed = esp_timer_get_time() - t_start;
             int64_t to_wait = (int64_t)step_delay_us - elapsed;
@@ -485,41 +500,56 @@ abort_experiment:
     return 1;
 }
 
-
 /*uint8_t execute_LSV_CV_experiment(LSV_CV_config *config)
 {
     const float res = 0.5f;
     float current_v = (float)config->initial_pot_mv;
-    const uint8_t head[2] = {0xCC, 0xDD};
-    const uint8_t tail[1] = {0x0A};
+    
     lsv_cv_packet_t pkt;
+    pkt.header[0] = HEADER_LSV[0]; 
+    pkt.header[1] = HEADER_LSV[1];
+    pkt.tail = PACKET_TAIL[0];
 
-    // 1. CONSTRUCCIÓN DE LA RUTA
+    // 1. CONSTRUCCIÓN DE LA RUTA SEGÚN EL MANUAL
     float targets[config->segments];
+    
     for (int i = 0; i < config->segments; i++) {
         int seg_num = i + 1;
-        if (seg_num == config->segments) targets[i] = (float)config->final_pot_mv;
-        else if (seg_num == 1) targets[i] = (float)config->switching_pot1_mv;
-        else targets[i] = (seg_num % 2 == 0) ? (float)config->switching_pot2_mv : (float)config->switching_pot1_mv;
+
+        if (seg_num == config->segments) {
+            targets[i] = (float)config->final_pot_mv;
+        } 
+        else if (seg_num == 1) {
+            targets[i] = (float)config->switching_pot1_mv;
+        } 
+        else {
+            targets[i] = (seg_num % 2 == 0) ? (float)config->switching_pot2_mv : (float)config->switching_pot1_mv;
+        }
     }
 
-    // 2. CONFIGURACIÓN DE PROMEDIO DINÁMICO (Optimizado para 30 kSPS)
+    // 2. CONFIGURACIÓN DE TIEMPO + OSR DINÁMICO
     uint32_t step_delay_us = (uint32_t)((res * 1000000.0f) / config->scan_rate_mv_s);
-    
-    // A 30kSPS, cada conversión tarda ~33.3us. Usamos 34us como margen seguro.
-    const uint32_t adc_conv_time_us = 34; 
-    
-    // Reservamos 600us para DAC, UART (a 921600 baudios) y overhead del procesador
-    const uint32_t overhead_us = 600;
-    
-    uint32_t num_averages = 1;
-    if (step_delay_us > overhead_us) {
-        num_averages = (step_delay_us - overhead_us) / adc_conv_time_us;
-    }
 
-    // Límites de seguridad para el promedio
-    if (num_averages < 1) num_averages = 1;
-    if (num_averages > 256) num_averages = 256; // Evita latencia excesiva y desborde
+    // Overhead fijo por iteración: ADC(33) + UART(119) + DAC(10) + ESP32(20) = ~182 µs
+    // Margen de seguridad del 20%: overhead_total = 182 * 1.2 = ~220 µs por muestra
+    const uint32_t OVERHEAD_PER_SAMPLE_US = 40;
+    // El overhead fijo por paso (UART + DAC) no escala con OSR, se paga una sola vez
+    const uint32_t OVERHEAD_FIXED_US = 160;  // UART(119) + DAC(10) + ESP32(20) + margen
+
+    uint32_t osr;
+
+    if      (config->scan_rate_mv_s <=   50) osr = 128;
+    else if (config->scan_rate_mv_s <=  100) osr =  64;
+    else if (config->scan_rate_mv_s <=  200) osr =  32;
+    else if (config->scan_rate_mv_s <=  500) osr =  16;
+    else if (config->scan_rate_mv_s <= 1000) osr =   8;
+    else if (config->scan_rate_mv_s <= 2000) osr =   2;
+    else                                     osr =   1;
+
+    // Verificación de seguridad: si el OSR calculado no cabe en el step_delay, reducirlo
+    while (osr > 1 && (OVERHEAD_FIXED_US + osr * OVERHEAD_PER_SAMPLE_US) > step_delay_us) {
+        osr /= 2;
+    }
 
     ADS125X_WAKEUP_HAL();
     VOLT_EXP_START();
@@ -533,7 +563,7 @@ abort_experiment:
         }
     }
 
-    // 3. EJECUCIÓN
+    // 3. EJECUCIÓN DE LA TRAYECTORIA
     for (int s = 0; s < config->segments; s++) 
     {
         float target_v = targets[s];
@@ -542,35 +572,27 @@ abort_experiment:
 
         for (uint32_t step = 0; step <= n_steps; step++) 
         {
-            if (ABORT_FLAG) goto abort_experiment;
+            if (ABORT_FLAG) 
+                goto abort_experiment;
+
             int64_t t_start = esp_timer_get_time();
 
-            // 1. Actualizar DAC
             MAX5217_DAC_WRITE_HAL_MV((int16_t)roundf(current_v));
 
-            // 2. Muestreo con Promedio Dinámico
-            double sum_adc = 0;
-            for(uint32_t a = 0; a < num_averages; a++) {
-                ADS125X_WAIT_DYDR_HAL(); 
-                sum_adc += ADS125X_READVOLT_HAL();
-                // Check de aborto rápido dentro del promedio
-                if (ABORT_FLAG) goto abort_experiment;
+            // Oversampling dinámico: promedio de osr lecturas del ADC
+            float acc = 0.0f;
+            for (uint32_t k = 0; k < osr; k++) {
+                ADS125X_WAIT_DYDR_HAL();
+                acc += ADS125X_READVOLT_HAL();
             }
+            pkt.voltage_index_mv = current_v;
+            pkt.voltage_meas     = acc / (float)osr;
             
-            pkt.voltage_index_mv = (int16_t)roundf(current_v);
-            pkt.voltage_meas = (float)(sum_adc / num_averages);
-            
-            // 3. Envío de datos
-            uart_write_bytes(UART_NUM_0, head, 2);
             uart_write_bytes(UART_NUM_0, &pkt, sizeof(lsv_cv_packet_t));
-            uart_write_bytes(UART_NUM_0, tail, 1);
-
-            // 4. Sincronización de tiempo de paso
+            
             int64_t elapsed = esp_timer_get_time() - t_start;
             int64_t to_wait = (int64_t)step_delay_us - elapsed;
-            if (to_wait > 0) {
-                esp_rom_delay_us((uint32_t)to_wait);
-            }
+            if (to_wait > 0) esp_rom_delay_us((uint32_t)to_wait);
 
             if (step < n_steps) current_v += (dir * res);
         }
@@ -579,16 +601,17 @@ abort_experiment:
 
     VOLT_EXP_STOP();
     ADS125X_STANDBY_HAL();
-    uart_write_bytes(UART_NUM_0, "FINISHED\n", 9);
+    uart_write_bytes(UART_NUM_0, MSG_FINISHED, strlen(MSG_FINISHED));
     return 0;
 
 abort_experiment:
     VOLT_EXP_STOP();
     ADS125X_STANDBY_HAL();
-    uart_write_bytes(UART_NUM_0, "FINISHED\n", 9);
+    uart_write_bytes(UART_NUM_0, MSG_FINISHED, strlen(MSG_FINISHED));
     ABORT_FLAG = 0;
     return 1;
 }*/
+
 
 
 uint8_t execute_PA_experiment(PA_config *config)

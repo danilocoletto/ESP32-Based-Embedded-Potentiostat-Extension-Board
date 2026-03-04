@@ -98,6 +98,7 @@ class PotenciostatoApp(QtWidgets.QMainWindow):
         self.actionScan_and_Connect.triggered.connect(self.controller.auto_conectar)
         self.actionDisconnect.triggered.connect(self.controller.detener_comunicacion)
 
+        self.actionOpenData.triggered.connect(self.controller.open_data_viewer)
         self.actionSaveData.triggered.connect(self.controller.guardar_datos_csv)
         self.actionSaveGraphic.triggered.connect(self.controller.guardar_grafico_imagen)
         self.actionExit.triggered.connect(self.close)

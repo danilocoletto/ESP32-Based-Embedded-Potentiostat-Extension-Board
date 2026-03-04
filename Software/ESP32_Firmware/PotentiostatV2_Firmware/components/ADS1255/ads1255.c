@@ -733,11 +733,21 @@ uint8_t ADS125X_CS(ADS125X_t *ads, uint8_t state)
   * @param  p_chan positive analog input
   * @see    Datasheet p. 31 MUX : Input Multiplexer Control Register (Address 01h)
   */
-void ADS125X_Channel_Set(ADS125X_t *ads, int8_t channel)
+void ADS125X_Channel_Set (ADS125X_t *ads, int8_t channel)
 { 
   ADS125X_ChannelDiff_Set(ads, channel, ADS125X_MUXN_AINCOM); 
 }
 
+/**
+  * @brief  sets a new drate for the ADS1255
+  * @param  *ads pointer to ads handle
+  * @param  drate the datarate of the converter
+  * @see    Datasheet p. 18 DIGITAL FILTER 
+  */
+uint8_t ADS125X_Set_Data_Rate (ADS125X_t *ads, uint8_t drate)
+{
+  return ADS125X_Register_Write(ads, ADS125X_REG_DRATE, drate);
+}
 
 /**
  * @brief Reads the current from the Transimpedance Amplifier (TIA) connected to the ADC.
@@ -787,6 +797,7 @@ float ADS125X_Get_Prop_Delay_Us(void)
 /*                       HAL Layer Functions for ADS1255                        */
 /********************************************************************************/
 
+//FALTA AGREGAR CHEQUEO DE ERRORES DE FIRMWARE PARA TODAS LAS FUNCIONES
 
 void ADS125X_INIT_HAL (uint8_t drate, uint8_t gain, uint8_t buffer_en)
 {
@@ -826,6 +837,11 @@ uint8_t ADS125X_READ_REG_HAL (uint8_t reg, uint8_t* pData, uint8_t n)
 void ADS125X_WRITE_REG_HAL (uint8_t reg, uint8_t data)
 {
   ADS125X_Register_Write(&ADS1255, reg, data);
+}
+
+void ADS125X_SET_DRATE_HAL (uint8_t drate)
+{
+  ADS125X_Set_Data_Rate(&ADS1255, drate);
 }
 
 uint8_t ADS125X_WAIT_DYDR_HAL (void)

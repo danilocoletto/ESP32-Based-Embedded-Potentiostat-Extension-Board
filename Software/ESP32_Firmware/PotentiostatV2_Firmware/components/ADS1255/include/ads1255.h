@@ -249,6 +249,7 @@ float    ADS125X_ADC_ReadVolt                (ADS125X_t *ads);
 void     ADS125X_Channel_Set                 (ADS125X_t *ads, int8_t chan);
 uint8_t  ADS125X_ChannelDiff_Set             (ADS125X_t *ads, int8_t p_chan, int8_t n_chan);
 float    ADS125X_ADCFast_ReadVolt_HAL        (ADS125X_t *ads);
+uint8_t  ADS125X_Set_Data_Rate               (ADS125X_t *ads, uint8_t drate);
 
 float    ADS125X_Get_Prop_Delay_Us(void);
 int32_t ADS125X_Get_Timeout_Us(uint8_t current_drate);
@@ -270,6 +271,7 @@ float    ADS125X_READVOLT_HAL       (void);
 uint8_t  ADS125X_READ_REG_HAL       (uint8_t reg, uint8_t* pData, uint8_t n);
 void     ADS125X_WRITE_REG_HAL      (uint8_t reg, uint8_t data);
 uint8_t  ADS125X_WAIT_DYDR_HAL      (void);
+void     ADS125X_SET_DRATE_HAL      (uint8_t drate);
 
 
 

@@ -1,6 +1,41 @@
-from collections import deque
 import numpy as np
 import pyqtgraph as pg
+from collections import deque
+from scipy.signal import butter, filtfilt
+
+
+def aplicar_filtro_pasabajos(data_history, fs_estimada=None):
+    """
+    Filtro Butterworth pasabajos de orden 4, fc=50Hz.
+    Aplicar sobre current_filtered_ma (columna 3) ya procesada por SG.
+    """
+    if len(data_history) < 20:
+        return data_history
+    
+    data = np.array(data_history)
+    
+    # Estimar Fs desde los timestamps si no se provee
+    if fs_estimada is None:
+        dt = np.median(np.diff(data[:, 0]))  # columna timestamp
+        fs = 1.0 / dt if dt > 0 else 5000.0
+    else:
+        fs = fs_estimada
+    
+    # Frecuencia de corte normalizada (fc / (fs/2))
+    fc = 50.0  # Hz
+    nyq = fs / 2.0
+    
+    if fc >= nyq:
+        # Si fs es muy baja, el filtro no tiene sentido
+        return data_history
+    
+    Wn = fc / nyq
+    b, a = butter(4, Wn, btype='low')
+    
+    # Aplicar filtro zero-phase (no agrega lag) sobre la corriente filtrada por SG
+    data[:, 3] = filtfilt(b, a, data[:, 3])
+    
+    return data.tolist()
 
 class DataProcessor:
     def __init__(self, median_size=5, window_size=61, poly_order=3):
@@ -18,6 +53,12 @@ class DataProcessor:
         self._buffer_raw    = deque(maxlen=self.median_size)    # Buffer para el filtro de mediana
         self._buffer_median = deque(maxlen=self.window_size)    # Buffer para el filtro Savitzky-Golay
 
+    def get_filtered_history(self, apply_lowpass=True, fc=50.0):
+        """Retorna el historial con filtro pasabajos opcional sobre la corriente filtrada."""
+        if not self.data_history or not apply_lowpass:
+            return self.data_history
+        return aplicar_filtro_pasabajos(self.data_history, fs_estimada=None)
+
     def _calculate_savgol_coeffs_end(self, window_size, order):
         """Calcula los coeficientes para el ÚLTIMO punto de la ventana (Causal)."""
         # Creamos la matriz de diseño de -window_size+1 hasta 0
@@ -34,10 +75,10 @@ class DataProcessor:
 
     def process_sample(self, timestamp, v_applied_mv, v_adc_v, gain_ohms):
         # 1. Conversión a Corriente
-        current_ma = (v_adc_v / gain_ohms) * 1000
+        raw_current_ma = (v_adc_v / gain_ohms) * 1000
         
         # 2. Filtro de Mediana — append() es O(1), maxlen descarta el viejo automáticamente
-        self._buffer_raw.append(current_ma)
+        self._buffer_raw.append(raw_current_ma)
         current_median = np.median(self._buffer_raw)
         
         # 3. Savitzky-Golay Causal — igual, O(1) por muestra
@@ -50,10 +91,11 @@ class DataProcessor:
             current_filtered_ma = current_median
             
         # 4. Guardar y Retornar
-        sample = [timestamp, v_applied_mv, current_ma, current_filtered_ma]
+        sample = [timestamp, v_applied_mv, raw_current_ma, current_filtered_ma]
         self.data_history.append(sample)
         
         return sample
+    
     
     def clear_data(self):
         """Limpia el historial y reinicia buffers."""

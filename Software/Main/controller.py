@@ -2,12 +2,19 @@ import csv
 import json
 import time
 import logging
+
+import pyqtgraph as pg
+import pyqtgraph.exporters  # ← agregar esta línea
+
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QMessageBox, QFileDialog, QSpinBox, QDoubleSpinBox, QCheckBox, QLineEdit
+
+
+from modules.data_viewer import DataViewerWindow
 from modules.processor import DataProcessor, PotentiostatGraph
-from modules.serial_manager import SerialScanner, SerialWorker, ScannerWorker
-from modules.protocol_defs import COMANDOS_SISTEMA, SCALES_CONFIG, EXPERIMENT_PAGES, PAQUETES_CONFIG, COMANDOS_UART
+from modules.serial_manager import SerialWorker, ScannerWorker
+from modules.protocol_defs import SCALES_CONFIG, EXPERIMENT_PAGES, PAQUETES_CONFIG, COMANDOS_UART
 
 class PotentiostatController:
     def __init__(self, view):
@@ -25,7 +32,7 @@ class PotentiostatController:
         self.total_experiment_time = 0
 
         # Variable para almacenar el último valor de corriente procesado para displays númericos
-        self.last_current_ma = 0.0
+        self.last_raw_current_ma = 0.0
         self.last_time_s = 0.0
 
         # Timer para actualizar los displays numéricos a velocidad humana (4Hz)
@@ -44,6 +51,7 @@ class PotentiostatController:
         self.graph_update_timer.timeout.connect(self._refresh_graph)
         self.graph_update_timer.start(100)  # 10 Hz es suficiente para el ojo humano
 
+        self._data_viewer = None  # instancia única reutilizable
         self.processor = DataProcessor(median_size=5, window_size=61)
         self.graph = PotentiostatGraph(self.view.graphicsView)
 
@@ -148,7 +156,10 @@ class PotentiostatController:
 
             if self.worker:
                 self.worker.cerrar_archivo_respaldo()  # ← flush y cierre al terminar
-            
+
+            # Aplicar Butterworth zero-phase sobre todos los datos y redibujar
+            #history_filtrado = self.processor.get_filtered_history(fc=50.0)
+            #self.graph.update(history_filtrado, self.current_experiment)
             logging.info(f"Experiment Finished.")
 
         elif clave == "WAITING" and self.comm_state == "FINISHING":
@@ -405,7 +416,7 @@ class PotentiostatController:
 
         # Estas variables se guardan para el refresco de los displays númericos
         self.last_time_s = sample[0]
-        self.last_current_ma = sample[2]
+        self.last_raw_current_ma = sample[2]
     
     def _refresh_graph(self):
         # Solo renderiza si hay datos nuevos
@@ -418,16 +429,16 @@ class PotentiostatController:
         self.view.TimeDisplay.setText(f" Time:   {self.last_time_s:.2f} s")
 
         # 2. Lógica de Auto-escala para Corriente
-        abs_current = abs(self.last_current_ma)
+        abs_current = abs(self.last_raw_current_ma)
         
         if abs_current < 0.001:  # nA
-            display_val = self.last_current_ma * 1e6
+            display_val = self.last_raw_current_ma * 1e6
             unit = "nA"
         elif abs_current < 1.0:   # uA
-            display_val = self.last_current_ma * 1e3
+            display_val = self.last_raw_current_ma * 1e3
             unit = "µA"
         else:                     # mA
-            display_val = self.last_current_ma
+            display_val = self.last_raw_current_ma
             unit = "mA"
 
         # 3. Actualizar Display de Corriente
@@ -492,11 +503,13 @@ class PotentiostatController:
                 with open(file_path, mode='w', newline='') as f:
                     writer = csv.writer(f)
                     # Escribir encabezados requeridos: timestamp, tensión, corriente, filtrada 
-                    writer.writerow(["time_stamp", "v_applied_mv", "current_ma", "current_filtered_ma"])
+                    writer.writerow(["time_stamp", "v_applied_mv", "raw_current_ma", "current_filtered_ma"])
                     
-                    # Escribir datos si existen 
-                    if self.processor.data_history:
-                        writer.writerows(self.processor.data_history)
+                    history = self.processor.data_history
+                    # Usar historial con Butterworth aplicado en lugar del raw
+                    #history = self.processor.get_filtered_history(fc=50.0)
+                    if history:
+                        writer.writerows(history)
                 
                 logging.debug("CSV succesfully saved.")
             except Exception as e:
@@ -762,3 +775,24 @@ class PotentiostatController:
         if self.worker:
             self.worker.stop()
             self.worker.wait()
+
+    
+    def open_data_viewer(self):
+        file_paths, _ = QFileDialog.getOpenFileNames(
+            self.view, "Open Data File", "", "CSV Files (*.csv);;All Files (*)"
+        )
+        if not file_paths:
+            return
+
+        if self._data_viewer is None:
+            self._data_viewer = DataViewerWindow(
+                on_close_callback=self._on_viewer_closed
+            )
+
+        for file_path in file_paths:
+            self._data_viewer.load_and_show(file_path)
+
+    def _on_viewer_closed(self):
+        """Libera la referencia al viewer para que Python pueda garbage-collectarlo."""
+        self._data_viewer = None
+        logging.debug("Data viewer closed and released from memory.")
