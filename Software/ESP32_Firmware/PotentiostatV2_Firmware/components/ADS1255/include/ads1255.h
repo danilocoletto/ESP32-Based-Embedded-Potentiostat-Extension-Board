@@ -2,7 +2,8 @@
  * @file        ads1255.h
  * @brief       C Header Library for ads1255/ads1256 family of Analog to Digital
  *              Conterters (ADC)
- * @details     This file implements the functionalities of the ADC.
+ * @details     This file contains the prototypes and definitions needed for 
+ *              the library to implements the functionalities of the ADC.
  * @version     1.0
  * @author      Ing. Danilo Coletto Gallego
  * @date        04.12.2025
@@ -42,10 +43,17 @@ SOFTWARE.
 #include <string.h>
 //#include "esp_log.h"
 //#include "esp_attr.h"
+#include "soc/spi_struct.h"
+#include "soc/spi_reg.h"
+
 #include "driver/spi_master.h"
 #include "driver/ledc.h"
 #include "gpio_config.h"
 #include "esp_rom_sys.h"
+#include "esp_timer.h"
+#include "muxes.h"
+
+//#define DEBUG_ADS1255
 
 // reference voltage
 #define ADS125X_VREF_2_5V (2.5f)
@@ -82,6 +90,12 @@ const defaults = {
 #define CLOCK_SPEED_2MHZ        2000000
 
 // --- ADS1255 PINOUT FOR ESP32 ---
+#define GEN_CLOCK
+
+#ifdef GEN_CLOCK
+  #define ADS1255_CLOCK_PIN     GPIO_NUM_16 
+#endif
+
 #define ADS1255_DOUT_MISO       GPIO_NUM_19
 #define ADS1255_DIN_MOSI        GPIO_NUM_23
 #define ADS1255_SCLK            GPIO_NUM_18
@@ -202,35 +216,62 @@ typedef struct {
     spi_device_handle_t hspix;
     float               vref;
     uint8_t             pga;
+    uint8_t             current_drate;
+    uint32_t            propagation_delay_us;
     float               convFactor;
     uint32_t            oscFreq;
     gpio_num_t          csPin;
     gpio_num_t          drdyPin;
 } ADS125X_t;
 
-spi_device_handle_t init_spi_bus (void);
-void     init_adc_clock          (uint32_t freq);
-void     ADS125X_Config_Pins     (void);
-uint8_t  ADS125X_CS              (ADS125X_t *ads, uint8_t state);
-uint8_t  ADS125X_DRDY_Wait       (ADS125X_t *ads);
-uint8_t  ADS125X_Init            (ADS125X_t *ads, spi_device_handle_t hspi, uint8_t drate, uint8_t gain, uint8_t buffer_en);   //RECORDAR QUE LE DEBO PASAR HANDLE DE SPI
-uint8_t  ADS125X_Register_Read   (ADS125X_t *ads, uint8_t reg, uint8_t* pData, uint8_t n);
-uint8_t  ADS125X_Register_Write  (ADS125X_t *ads, uint8_t reg, uint8_t data);
-uint8_t  ADS125X_CMD_Send        (ADS125X_t *ads, uint8_t cmd);
-void     ADS125X_ADC_Code2Volt   (ADS125X_t *ads, int32_t *pCode, float *pVolt, uint16_t size);
-float    ADS125X_ADC_ReadVolt    (ADS125X_t *ads);
 
-//ME FALTA FUNCION PARA INICIALIZAR EL SPI DEL ADC
-spi_device_handle_t* ADS125X_SPI_Init   (void);
+typedef struct {
+    uint8_t reg_val;      // Valor del registro DRATE (ej: 0x03 para 2.5 SPS)
+    uint32_t timeout_us;  // Timeout recomendado en us
+} ADS125X_timeout_t;
 
-void     ADS125X_Channel_Set     (ADS125X_t *ads, int8_t chan);
-uint8_t  ADS125X_ChannelDiff_Set (ADS125X_t *ads, int8_t p_chan, int8_t n_chan);
-// float    ADS125X_Read_Channel    (ADS125X_t *ads );
 
-uint8_t  ADS125X_Delay_Cycles    (ADS125X_t *ads, uint32_t cycles);
-uint32_t ADS125X_read_uint24     (ADS125X_t *ads );
-uint32_t ADS125X_read_uint32     (ADS125X_t *ads );
-float    ADS125X_read_float32    (ADS125X_t *ads );
+typedef struct {
+    uint8_t reg_val;      // Valor del registro DRATE (ej: 0x03 para 2.5 SPS)
+    uint32_t propagation_delay_us;  // Timeout recomendado en us
+} ADS125X_prop_delay_t;
+
+/**************Functions for ADS1255************/
+
+uint8_t  ADS125X_CS                          (ADS125X_t *ads, uint8_t state);
+uint8_t  ADS125X_DRDY_Wait                   (ADS125X_t *ads);
+void     ADS125X_Init                        (ADS125X_t *ads, uint8_t drate, uint8_t gain, uint8_t buffer_en);
+uint8_t  ADS125X_Register_Read               (ADS125X_t *ads, uint8_t reg, uint8_t* pData, uint8_t n);
+uint8_t  ADS125X_Register_Write              (ADS125X_t *ads, uint8_t reg, uint8_t data);
+uint8_t  ADS125X_CMD_Send                    (ADS125X_t *ads, uint8_t cmd);
+void     ADS125X_ADC_Code2Volt               (ADS125X_t *ads, int32_t *pCode, float *pVolt, uint16_t size);
+float    ADS125X_ADC_ReadVolt                (ADS125X_t *ads);
+void     ADS125X_Channel_Set                 (ADS125X_t *ads, int8_t chan);
+uint8_t  ADS125X_ChannelDiff_Set             (ADS125X_t *ads, int8_t p_chan, int8_t n_chan);
+float    ADS125X_ADCFast_ReadVolt_HAL        (ADS125X_t *ads);
+uint8_t  ADS125X_Set_Data_Rate               (ADS125X_t *ads, uint8_t drate);
+
+float    ADS125X_Get_Prop_Delay_Us(void);
+int32_t ADS125X_Get_Timeout_Us(uint8_t current_drate);
+
+/*********Internal Functions for ADS1255*********/
+
+spi_device_handle_t   init_spi_bus            (void);
+void                  init_adc_clock          (uint32_t freq);
+void                  ADS125X_Config_Pins     (void);
+
+/*********HAL Layer Functions for ADS1255*********/
+
+void     ADS125X_INIT_HAL           (uint8_t drate, uint8_t gain, uint8_t buffer_en);
+void     ADS125X_WAKEUP_HAL         (void);
+void     ADS125X_STANDBY_HAL        (void);
+void     ADS125X_SDATAC_HAL         (void);
+void     ADS125X_CMD_SEND_HAL       (uint8_t cmd);
+float    ADS125X_READVOLT_HAL       (void);
+uint8_t  ADS125X_READ_REG_HAL       (uint8_t reg, uint8_t* pData, uint8_t n);
+void     ADS125X_WRITE_REG_HAL      (uint8_t reg, uint8_t data);
+uint8_t  ADS125X_WAIT_DYDR_HAL      (void);
+void     ADS125X_SET_DRATE_HAL      (uint8_t drate);
 
 
 

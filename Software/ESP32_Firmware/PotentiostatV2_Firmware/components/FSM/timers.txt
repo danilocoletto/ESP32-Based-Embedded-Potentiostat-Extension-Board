@@ -1,0 +1,100 @@
+
+// Prototype for the callback function
+static void  ADC_DAC_Sync_Timer_callback  (void* arg);
+void         Sync_Timer_init              (void);
+void         Sync_Timer_configure         (uint64_t period_us);
+void         Sync_Timer_stop              (void);
+
+
+
+
+// Log tag for printing to the console
+static const char* TAG = "SYNC_TIMER";
+
+// Handle for the timer, declared static to be accessible within this file only
+static esp_timer_handle_t Sync_Timer = NULL;
+
+
+/**
+ * @brief Timer callback function.
+ * * This function is executed when the timer period expires.
+ * Note: Keep this function short. Do not use blocking calls or printf.
+ * * @param arg Pointer to arguments passed during timer creation (unused here).
+ */
+static void ADC_DAC_Sync_Timer_callback(void* arg) {
+    // Your logic here
+}
+
+/**
+ * @brief Initializes the High Resolution Timer.
+ * * This function defines the timer arguments and creates the timer instance.
+ * It does NOT start the timer. Call timer_configure() to start it.
+ * It checks if the timer is already initialized to prevent memory leaks.
+ */
+void Sync_Timer_init(void) {
+    if (Sync_Timer != NULL) {
+        ESP_LOGW(TAG, "Timer already initialized, skipping creation.");
+        return;
+    }
+
+    const esp_timer_create_args_t Sync_Timer_args = {
+        .callback = &ADC_DAC_Sync_Timer_callback,
+        .name = "ADC_DAC_Sync_Timer"
+    };
+
+    esp_err_t err = esp_timer_create(&Sync_Timer_args, &Sync_Timer);
+    
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to create timer: %s", esp_err_to_name(err));
+        Sync_Timer = NULL; // Ensure handle remains NULL on failure
+    } else {
+        ESP_LOGI(TAG, "Timer created successfully.");
+    }
+}
+
+/**
+ * @brief Configures and starts the periodic timer.
+ * * If the timer is already running, it stops it first and then restarts it
+ * with the new period. This serves as both a "start" and "re-configure" function.
+ * * @param period_us The period in microseconds (e.g., 500000 for 0.5s).
+ */
+void Sync_Timer_configure(uint64_t period_us) {
+    if (Sync_Timer == NULL) {
+        ESP_LOGE(TAG, "Cannot configure: Timer not initialized. Call timer_init() first.");
+        return;
+    }
+
+    // Attempt to stop the timer first just in case it is already running.
+    // We ignore the error here because if it wasn't running, it returns ESP_ERR_INVALID_STATE, which is fine.
+    esp_timer_stop(Sync_Timer);
+
+    // Start the timer with the new period
+    esp_err_t err = esp_timer_start_periodic(Sync_Timer, period_us);
+
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to start timer: %s", esp_err_to_name(err));
+    } else {
+        ESP_LOGI(TAG, "Timer started with period: %llu us", period_us);
+    }
+}
+
+/**
+ * @brief Stops the periodic timer.
+ * * Safe to call even if the timer is not currently running.
+ */
+void Sync_Timer_stop(void) {
+    if (Sync_Timer == NULL) {
+        ESP_LOGW(TAG, "Cannot stop: Timer handle is NULL.");
+        return;
+    }
+
+    esp_err_t err = esp_timer_stop(Sync_Timer);
+
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "Timer stopped successfully.");
+    } else if (err == ESP_ERR_INVALID_STATE) {
+        ESP_LOGW(TAG, "Timer was already stopped.");
+    } else {
+        ESP_LOGE(TAG, "Error stopping timer: %s", esp_err_to_name(err));
+    }
+}

@@ -14,20 +14,60 @@ MIT License
 
 #include "max5217.h"
 
+
+/********************************************************************************/
+/*                  Global Variables for DAC Functionalities                    */
+/********************************************************************************/
+
 static const char *TAG = "DAC_SETUP";
 
 // Global static variable to keep the bus handle
 static i2c_master_bus_handle_t bus_handle = NULL;
+i2c_master_dev_handle_t MAX5217_DAC_handle;             // Handle for MAX5217
+
+/********************************************************************************/
+/*                       Internal Functions for MAX5217                         */
+/********************************************************************************/
+
+
+void I2C_Scanner (i2c_master_bus_handle_t bus_handle) {
+    printf("--- I2C SCANNER START ---\n");
+    printf("Scanning I2C bus...\n");
+    
+    int devices_found = 0;
+    
+    for (uint8_t addr = 1; addr < 127; addr++) {
+        // In ESP-IDF v5, we use i2c_master_probe to check for a device
+        esp_err_t ret = i2c_master_probe(bus_handle, addr, 50); // 50ms timeout
+        
+        if (ret == ESP_OK) {
+            printf(" -> Device found at address: 0x%02X\n", addr);
+            devices_found++;
+        }
+    }
+    
+    if (devices_found == 0) {
+        printf(" -> NO DEVICES FOUND. Check wiring/pull-ups.\n");
+    } else {
+        printf("--- SCAN COMPLETE: Found %d device(s) ---\n", devices_found);
+    }
+}
+
+
+/********************************************************************************/
+/*                            Functions for MAX5217                             */
+/********************************************************************************/
+
 
 /**
  * @brief Configures the I2C DAC.
  * @param devID I2C device address (e.g., 0x48).
  * @return i2c_master_dev_handle_t Device handle, or NULL on failure.
  */
-i2c_master_dev_handle_t setup_DAC(uint8_t devID)
+i2c_master_dev_handle_t MAX5217_Setup_DAC (uint8_t devID)
 {
-    config_pin(DAC_NAUX, GPIO_MODE_OUTPUT, GPIO_PULLUP_ENABLE, GPIO_PULLDOWN_DISABLE, GPIO_INTR_DISABLE);
-    gpio_set_level(DAC_NAUX, HIGH);    // Lo deshabilito
+    config_pin(MAX_5217_NAUX, GPIO_MODE_OUTPUT, GPIO_PULLUP_ENABLE, GPIO_PULLDOWN_DISABLE, GPIO_INTR_DISABLE);
+    gpio_set_level(MAX_5217_NAUX, HIGH);    // Lo deshabilito
 
     // Initialize the I2C BUS (just if it hadn't been done before)
     if (bus_handle == NULL) {
@@ -65,10 +105,6 @@ i2c_master_dev_handle_t setup_DAC(uint8_t devID)
     ESP_LOGI(TAG, "Comunicación I2C con DAC configurada exitosamente.");
 
     /* --- SOBRE LA PARTE COMENTADA ---
-       wiringPiI2CWriteReg16(DAC_prep, MAX5217_CMD_USER_CONFIG, (0 | 32));
-       
-       En ESP-IDF v5, para escribir harías algo así:
-       
        uint8_t data_to_send[] = { MAX5217_CMD_USER_CONFIG, (0 | 32) }; // Ojo con el orden de bytes (Endianness)
        i2c_master_transmit(dac_handle, data_to_send, sizeof(data_to_send), -1);
     */
@@ -88,14 +124,57 @@ i2c_master_dev_handle_t setup_DAC(uint8_t devID)
  * @param dac_handle Handle to the I2C DAC device (ESP-IDF driver).
  * @param mvolt_value Target output voltage (voltage values goes between -2500 mV and 2500 mV) in millivolts. 
  */
-void write_DAC(i2c_master_dev_handle_t dac_handle, double mvolt_value)
+void MAX5217_Write_DAC_MV (i2c_master_dev_handle_t dac_handle, float mvolt_value)
+{
+    // Protección de Handle nulo
+    if (dac_handle == NULL) return;
+
+    // CLAMPING: Protección de rangos (CRÍTICO)
+    // Esto evita el "Integer Underflow". Si mvolt_value llega como -2500.000001,
+    // la suma daría negativo y al pasarlo a unsigned int se iría al máximo (65535).
+    // Aquí lo forzamos a mantenerse dentro de los límites seguros.
+    if (mvolt_value < -2500.0) mvolt_value = -2500.0;
+    if (mvolt_value > 2500.0)  mvolt_value = 2500.0;
+
+    unsigned int valor_DAC = 0;
+    int msg = 0;
+
+    //Cálculo con REDONDEO
+    // Se suma +0.5 antes del cast (int) para redondear al entero más cercano 
+    // en lugar de truncar decimales (función piso).
+    float raw_val = ((mvolt_value + (float) DAC_REF_2_5V) * (float) MAX_VALUE_DAC) / (float) DAC_REF_5V;
+    valor_DAC = (unsigned int)(raw_val + 0.5);
+
+    //Swap de Endianness (Lógica original preservada)
+    // Intercambio de lugar de los 8 bits menos significativos con los 8 mas significativos.
+    msg = (((valor_DAC & 0x00FF) << 8) | ((valor_DAC & 0xFF00) >> 8));
+    
+    //Preparación del Buffer
+    uint8_t write_buffer[3];
+    write_buffer[0] = MAX5217_CMD_CODE_LOAD;       // Comando
+    write_buffer[1] = (uint8_t)(msg & 0xFF);       // Byte Alto (gracias al swap)
+    write_buffer[2] = (uint8_t)((msg >> 8) & 0xFF); // Byte Bajo
+
+    //Transmisión I2C Segura (Con Timeout)
+    // Usamos un timeout de 50ms para no bloquear el sistema si hay un error eléctrico momentáneo.
+    //esp_err_t err = i2c_master_transmit(dac_handle, write_buffer, sizeof(write_buffer), 50 / portTICK_PERIOD_MS);
+    esp_err_t err = i2c_master_transmit(dac_handle, write_buffer, sizeof(write_buffer), -1);
+    
+    if (err != ESP_OK) {
+        // Solo reportamos el error, NO abortamos ni reiniciamos el ESP32
+        ESP_LOGE(TAG, "I2C Write Failed: %s", esp_err_to_name(err));
+    }
+}
+
+ /*
+void write_DAC(i2c_master_dev_handle_t dac_handle, float mvolt_value)
 {
     int valor_DAC = 0;
     int msg = 0;
     
 
     // Logic to calculate the DAC value depending on the desire voltage in milivolts
-    valor_DAC = (unsigned int)(((mvolt_value + (double) DAC_REF_2_5V) * MAX_VALUE_DAC) / DAC_REF_5V);
+    valor_DAC = (unsigned int)(((mvolt_value + (float) DAC_REF_2_5V) * MAX_VALUE_DAC) / DAC_REF_5V);
     
 
     // Lógica Original Preservada (Movimiento de bits)
@@ -103,7 +182,6 @@ void write_DAC(i2c_master_dev_handle_t dac_handle, double mvolt_value)
     // Intercambio de lugar de los 8 bits menos significativos con los 8 mas significativos.
     // Si valor_DAC era 0xAABB, msg será 0xBBAA.
     msg = (((valor_DAC & 0x00FF)<<8) | ((valor_DAC & 0xFF00)>>8));
-    
     uint8_t write_buffer[3];
     
     // Byte 0: El registro de comando (Command Byte)
@@ -130,7 +208,7 @@ void write_DAC(i2c_master_dev_handle_t dac_handle, double mvolt_value)
         ESP_LOGE(TAG, "I2C Write Failed: %s", esp_err_to_name(err));
     }
 }
-
+*/
 
 /**
  * @brief Resets the DAC output to a specific baseline voltage.
@@ -139,10 +217,10 @@ void write_DAC(i2c_master_dev_handle_t dac_handle, double mvolt_value)
  *
  * @param dac_handle Handle to the I2C DAC device.
  */
-void clear_DAC(i2c_master_dev_handle_t dac_handle)
+void MAX5217_Clear_DAC (i2c_master_dev_handle_t dac_handle)
 {
     // Usamos la función write_DAC que acabamos de portar
-    write_DAC(dac_handle, 2500);
+    MAX5217_Write_DAC_MV(dac_handle, 2500);
 
     /* 
        uint8_t clear_cmd[3] = { MAX5217_CMD_SW_CLEAR, 0x00, 0x00 };
@@ -151,25 +229,35 @@ void clear_DAC(i2c_master_dev_handle_t dac_handle)
 }
 
 
-void i2c_scanner(i2c_master_bus_handle_t bus_handle) {
-    printf("--- I2C SCANNER START ---\n");
-    printf("Scanning I2C bus...\n");
-    
-    int devices_found = 0;
-    
-    for (uint8_t addr = 1; addr < 127; addr++) {
-        // In ESP-IDF v5, we use i2c_master_probe to check for a device
-        esp_err_t ret = i2c_master_probe(bus_handle, addr, 50); // 50ms timeout
-        
-        if (ret == ESP_OK) {
-            printf(" -> Device found at address: 0x%02X\n", addr);
-            devices_found++;
-        }
-    }
-    
-    if (devices_found == 0) {
-        printf(" -> NO DEVICES FOUND. Check wiring/pull-ups.\n");
+
+/********************************************************************************/
+/*                       HAL Layer Functions for MAX5217                        */
+/********************************************************************************/
+
+void MAX5217_DAC_Setup_HAL (void)
+{
+    MAX5217_DAC_handle = MAX5217_Setup_DAC(DAC1_DEVICE_ID);
+
+    if (MAX5217_DAC_handle) {
+        MAX5217_Clear_DAC(MAX5217_DAC_handle); // Pone el DAC en 2.048V inicial
     } else {
-        printf("--- SCAN COMPLETE: Found %d device(s) ---\n", devices_found);
+        ESP_LOGE(TAG, "Error inicializando DAC!");
     }
+}
+
+int MAX5217_DAC_WRITE_HAL_MV (float millivoltage)
+{
+    if (MAX5217_DAC_handle)
+    {
+        MAX5217_Write_DAC_MV(MAX5217_DAC_handle, millivoltage);
+        return 0;
+    }
+    else
+        return -1;
+
+}
+
+void MAX5217_DAC_CLEAR_HAL (void)
+{
+    MAX5217_Clear_DAC(MAX5217_DAC_handle);
 }

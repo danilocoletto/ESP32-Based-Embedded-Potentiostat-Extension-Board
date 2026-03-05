@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "ESP32_Board")(type "KiCad")(uri "${KIPRJMOD}/symlib/esp_board.kicad_sym")(options "")(descr ""))
+)
