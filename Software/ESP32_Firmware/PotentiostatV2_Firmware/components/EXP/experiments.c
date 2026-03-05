@@ -102,10 +102,16 @@ void VOLT_EXP_STOP (void)
  * - \b quiet_time_s: Stabilization time without stirring, typically 10-15s[cite: 55, 105].
  * * @return uint8_t Returns 0 upon successful completion of the treatment.
  */
-uint8_t execute_PRECOND_Treatment(DEPO_PRECOND_config *config)
+uint8_t execute_DEPO_PRECOND (DEPO_PRECOND_config *config)
 {
+    int64_t quiet_until;
+
     VOLT_EXP_START();
 
+    printf("depo_pot_mv: %d \n", (int) (config->deposition_pot_mv));
+    printf("depo_time_mv: %d \n", (int) (config->deposition_time_s));
+    printf("depo_pot_quiet_time: %d \n", (int) (config->quiet_time_s));
+    printf("depo_stir_on_off: %d \n", (int) (config->stir_on_off));
     // ==========================================
     // STAGE 1: DEPOSITION (PRECONCENTRATION)
     // ==========================================
@@ -116,10 +122,15 @@ uint8_t execute_PRECOND_Treatment(DEPO_PRECOND_config *config)
     //turn_on_agitator(); 
 
     // Maintain potential and stirring for the defined duration 
-    if (config->deposition_time_s > 0) {
-        vTaskDelay(pdMS_TO_TICKS(config->deposition_time_s * 1000));
+    if (config->deposition_time_s > 0)
+    {
+        quiet_until = esp_timer_get_time() + (config->deposition_time_s * 1000000LL);
+        while (esp_timer_get_time() < quiet_until)
+        {
+            if (ABORT_FLAG) goto abort_precond;
+            vTaskDelay(pdMS_TO_TICKS(10)); // Mantiene el sistema responsivo
+        }
     }
-
     // ==========================================
     // STAGE 2: QUIET TIME (EQUILIBRIUM)
     // ==========================================
@@ -128,11 +139,25 @@ uint8_t execute_PRECOND_Treatment(DEPO_PRECOND_config *config)
 
     // The system remains at the deposition potential but at rest 
     // Generally, Quiet Time ranges from 10 to 15 seconds 
-    if (config->quiet_time_s > 0) {
-        vTaskDelay(pdMS_TO_TICKS(config->quiet_time_s * 1000));
+    if (config->quiet_time_s > 0)
+    {
+        quiet_until = esp_timer_get_time() + (config->quiet_time_s * 1000000LL);
+        while (esp_timer_get_time() < quiet_until)
+        {
+            if (ABORT_FLAG) goto abort_precond;
+            vTaskDelay(pdMS_TO_TICKS(10)); // Mantiene el sistema responsivo
+        }
     }
+    
 
     return 0; // Preconditioning finished successfully
+
+abort_precond:
+    VOLT_EXP_STOP();
+    ADS125X_STANDBY_HAL();
+    uart_write_bytes(UART_NUM_0, MSG_FINISHED, strlen(MSG_FINISHED));
+    ABORT_FLAG = 0;
+    return 1;
 }
 
 /**

@@ -65,6 +65,10 @@ static void process_line_FSM (potentiostat_fsm_t *fsm)
         uart_wait_tx_done(UART_NUM_0, pdMS_TO_TICKS(100));
         esp_restart();
     }
+    else if (strcmp(cmd, CMD_GET_ID) == 0) {
+        uart_flush_input(UART_NUM_0);  // limpiar buffer de entrada
+        uart_write_bytes(UART_NUM_0, MSG_ID_STR, strlen(MSG_ID_STR));
+    } 
     else if (strcmp(cmd, CMD_GET_STATE) == 0) {
         // Implementar lógica de estado de electrodos
         if (fsm->current_state == STATE_WAITING)
@@ -82,9 +86,6 @@ static void process_line_FSM (potentiostat_fsm_t *fsm)
                 transition_state_FSM(fsm, STATE_PREPARING);
                 uart_write_bytes(UART_NUM_0, MSG_READY_ACK, strlen(MSG_READY_ACK));
                 uart_write_bytes(UART_NUM_0, MSG_PREPARING, strlen(MSG_PREPARING));
-            } 
-            else if (strcmp(cmd, CMD_GET_ID) == 0) {
-                uart_write_bytes(UART_NUM_0, MSG_ID_STR, strlen(MSG_ID_STR));
             } 
             else if (strcmp(cmd, CMD_E_STATUS) == 0) {
                 // Implementar lógica de estado de electrodos
@@ -248,4 +249,9 @@ TaskHandle_t* get_ExpControlTask_pointer (void)
 exp_config* get_exp_config_pointer(void)
 {
     return &experiment_config;
+}
+
+DEPO_PRECOND_config* get_precond_config_pointer (void)
+{
+    return &precond_config;
 }

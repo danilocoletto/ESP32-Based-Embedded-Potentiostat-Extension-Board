@@ -15,96 +15,6 @@
 
 
 static const char *TAG = "MAIN_APP";
-
-
-// --- PROCESAMIENTO DE COMANDOS (Lógica Central) ---
-void procesar_comando_completo(int comando) {
-    
-    // CASO 1: LEER REGISTROS (Comandos 1 al 11)
-    if (comando >= 1 && comando <= 11) {
-        
-        const uint8_t mapa_registros[] = {
-            ADS125X_REG_STATUS, ADS125X_REG_MUX, ADS125X_REG_ADCON, ADS125X_REG_DRATE, ADS125X_REG_IO, 
-            ADS125X_REG_OFC0, ADS125X_REG_OFC1, ADS125X_REG_OFC2, ADS125X_REG_FSC0, ADS125X_REG_FSC1, ADS125X_REG_FSC2
-        };
-        const char *nombres_registros[] = {
-            "STATUS", "MUX", "ADCON", "DRATE", "IO", "OFC0", "OFC1", "OFC2", "FSC0", "FSC1", "FSC2"
-        };
-        
-        uint8_t index = comando - 1;
-        uint8_t reg_addr = mapa_registros[index];
-        uint8_t reg_val = 0;
-        
-
-        ADS125X_READ_REG_HAL(reg_addr, &reg_val, 1);
-        printf("[CMD %d] REG %s (0x%02X) = 0x%02X\n", comando, nombres_registros[index], reg_addr, reg_val);
-    }
-    
-    // CASO 2: LEER MUESTRA ADC (Comando 12)
-    else if (comando == 12) {
-        float voltage = ADS125X_READVOLT_HAL();
-        printf("ADC Sample Voltage: %f V\n", voltage);
-    }
-    
-    // CASO 3: RESETEAR ADC (Comando 13)
-    else if (comando == 13) {
-        ADS125X_CMD_SEND_HAL(ADS125X_CMD_RESET);
-        esp_rom_delay_us(5000);
-    }
-    
-    // CASO 4: RESERVADOS (Comandos 14-18) - Preparados para futuro
-    else if (comando >= 14 && comando <= 27) {
-        switch (comando) {
-            case 14: printf("Comando 14: RESERVADO (Sin implementar)\n");
-                     MAX5217_DAC_WRITE_HAL_MV(0.0); 
-                     break;
-            case 15: printf("Comando 15: RESERVADO (Sin implementar)\n");
-                     MAX5217_DAC_WRITE_HAL_MV(2500.0); 
-                     break;
-            case 16: printf("Comando 16: RESERVADO (Sin implementar)\n");
-                     MAX5217_DAC_WRITE_HAL_MV(-2400.0);
-                     break;
-            case 17: printf("Comando 17: RESERVADO (Sin implementar)\n");
-                     MAX5217_DAC_WRITE_HAL_MV(-2500.0);
-                     break;
-            case 18: printf("Comando 18: RESERVADO (Sin implementar)\n");
-                     MAX5217_DAC_WRITE_HAL_MV(-2000.0);
-                     break;
-            case 19: printf("Comando 18: RESERVADO (Sin implementar)\n");
-                     MAX4617_Set_Gain(NO_GAIN);
-                     break;
-            case 20: printf("Comando 18: RESERVADO (Sin implementar)\n");
-                     MAX4617_Set_Gain(GAIN1_100);
-                     break;
-            case 21: printf("Comando 18: RESERVADO (Sin implementar)\n");
-                     MAX4617_Set_Gain(GAIN2_3K);
-                     break;
-            case 22: printf("Comando 18: RESERVADO (Sin implementar)\n");
-                     MAX4617_Set_Gain(GAIN3_30K);
-                     break;
-            case 23: printf("Comando 18: RESERVADO (Sin implementar)\n");
-                     MAX4617_Set_Gain(GAIN4_300K);
-                     break;
-            case 24: printf("Comando 18: RESERVADO (Sin implementar)\n");
-                     MAX4617_Set_Gain(GAIN5_3M);
-                     break;
-            case 25: printf("Comando 18: RESERVADO (Sin implementar)\n");
-                     MAX4617_Set_Gain(GAIN6_30M);
-                     break;
-            case 26: printf("Comando 18: RESERVADO (Sin implementar)\n");
-                     MAX4617_Set_Gain(GAIN7_100M);
-                     break;
-        }
-    }
-    
-    // ERROR
-    else {
-        printf("Comando desconocido: %d\n", comando);
-    }
-}
-
-
-
 TaskHandle_t xTaskUARTControlHandle = NULL;
 potentiostat_fsm_t* main_fsm;
 
@@ -131,6 +41,7 @@ void uart_task(void *pvParameters)
 void experiment_exec_task(void *pvParameters) 
 {
     exp_config* exp_config_pointer = get_exp_config_pointer();
+    DEPO_PRECOND_config* precond_config_pointer = get_precond_config_pointer ();
     while (1) {
         // Esperar notificación de inicio (START_EXP recibido en FSM)
         // La tarea no consume CPU mientras espera.
@@ -142,8 +53,13 @@ void experiment_exec_task(void *pvParameters)
         // Usamos el ID del experimento guardado durante la fase de configuración.
         if (main_fsm->current_experiment == EXP_SWV) 
         {
-            // Se asume que 'current_swv' fue llenada por sscanf en la FSM
-            execute_SWV_experiment(&(exp_config_pointer->SWV));
+            if (precond_config_pointer->precond_on_off){
+                printf("Aplicando pretratamiento \n");
+                if (execute_DEPO_PRECOND(precond_config_pointer) == 0)
+                    execute_SWV_experiment(&(exp_config_pointer->SWV));
+            }
+            else
+                execute_SWV_experiment(&(exp_config_pointer->SWV));
         } 
         else if (main_fsm->current_experiment == EXP_LSV) 
         {
@@ -223,7 +139,7 @@ void app_main(void)
         "EXP_CONTROL_TASK",      // Nombre
         8192,                   // Stack size (más grande por procesamiento)
         NULL,                   // Parámetros
-        configMAX_PRIORITIES - 1,                     // Prioridad máxima (Crítica para el timing)
+        configMAX_PRIORITIES - 2,                     // Prioridad máxima (Crítica para el timing)
         get_ExpControlTask_pointer(),                   // Handle
         1                       // <--- PINNED TO CORE 1
     );

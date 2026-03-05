@@ -3,4 +3,6 @@ Trabajos Escritos/
 Software/Analog
 __pycache__/
 exports/
+Software/leer_datos_serial_python.py
+Software/test_comandos.txt
 *.log

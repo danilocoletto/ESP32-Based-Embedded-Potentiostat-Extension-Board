@@ -2,6 +2,7 @@ import csv
 import json
 import time
 import logging
+import serial.tools.list_ports
 
 import pyqtgraph as pg
 import pyqtgraph.exporters  # ← agregar esta línea
@@ -30,6 +31,7 @@ class PotentiostatController:
         # Ganancia inicial por defecto (ejemplo 100 Ohms de la escala 40mA)
         self.current_gain = 100.0
         self.total_experiment_time = 0
+        self._experiment_start_time = None
 
         # Variable para almacenar el último valor de corriente procesado para displays númericos
         self.last_raw_current_ma = 0.0
@@ -89,7 +91,7 @@ class PotentiostatController:
             self.view.actualizar_ui_electrodos("DISENGAGED") 
 
         # --- FLUJO DE CONTROL DE EXPERIMENTO ---
-        
+
         # Paso 1: Recepción de READY_ACK tras enviar PREPARE (READY_UP)
         if clave == "READY_ACK" and self.comm_state == "WAITING_READY_ACK":
             self.comm_state = "WAITING_PREPARING" 
@@ -168,6 +170,36 @@ class PotentiostatController:
             logging.info("Device back to idle. Ready for next experiment.")
 
 
+        # ESTADOS Y CASOS PARA CUBRIR EN CASO DE RECONEXION Y DESINCRONIZACION ENTRE ESP Y UI
+        # Respuestas al GET_STATE — reconexión y sincronización
+        
+        elif clave == "WAITING" and self.comm_state == "IDLE":
+            # ESP32 en reposo — sincronización normal, arrancar handshake
+            self.enviar_comando_uart("ELEC_STATUS")
+
+        """""    
+        elif clave == "EXECUTING" and self.comm_state == "IDLE":
+            # Reconexión durante experimento en curso
+            logging.warning("Reconnected while experiment in progress — waiting for finish.")
+            self.comm_state = "RUNNING"
+            self._experiment_start_time = time.time()  # timer desde ahora, datos previos perdidos
+
+            if self.worker:
+                self.worker.start_time = time.time() # Reset t0 para el gráfico
+
+            self.graph_update_timer.start(100)
+            self.display_update_timer.start(250)
+            self.progress_timer.start(100)
+
+            QMessageBox.information(
+                self.view, "Reconnected",
+                "Reconnected successfully.\n\n"
+                "The device is currently running an experiment.\n"
+                "Data from before the disconnection has been lost.\n"
+                "Waiting for the experiment to finish..."
+            )
+        """
+
     def enviar_configuracion_ganancia(self):
         """Busca el ID de la escala actual y lo envía a la ESP32."""
         # Iniciamos con el ID de la escala por defecto (action40_mA -> ID 1) 
@@ -202,6 +234,7 @@ class PotentiostatController:
         self.progress_timer.stop()
         self.graph_update_timer.stop()   
         self.display_update_timer.stop()
+        self._experiment_start_time = None
         self.view.init_button.setEnabled(True)
 
     def iniciar_logica_ui_experimento(self):
@@ -213,6 +246,7 @@ class PotentiostatController:
             self.total_experiment_time = 1.0
 
         self.view.progressBar.setValue(0)
+        self._experiment_start_time = time.time()
 
         if self.worker:
             self.worker.resetear_archivo_respaldo()
@@ -382,14 +416,18 @@ class PotentiostatController:
             self.worker.wait()
             self.worker.dato_procesado.disconnect()
             self.worker.comando_texto.disconnect()
+            self.worker.dispositivo_desconectado.disconnect()
 
         self.worker = SerialWorker(puerto, 921600)
         self.worker.dato_procesado.connect(self.dispatch_data)
-        self.worker.comando_texto.connect(self.handle_system_command) 
+        self.worker.comando_texto.connect(self.handle_system_command)
+        self.worker.dispositivo_desconectado.connect(self._on_dispositivo_desconectado)  # ← nueva
+
 
         if self.worker:
             self.worker.start()
-            QTimer.singleShot(1000, lambda: self.enviar_comando_uart("ELEC_STATUS"))
+            QTimer.singleShot(1000, lambda: self.enviar_comando_uart("GET_STATE"))
+
 
     def dispatch_data(self, data):
         tipo = data['tipo']
@@ -409,7 +447,7 @@ class PotentiostatController:
             v_adc_diff = vals[1]
 
         elif tipo == "Controlled Potential Electrolysis":
-            v_adc_diff = vals[2]  # vals[0]=index, vals[1]=voltage, vals[2]=current
+            v_adc_diff = vals[1]  # vals[0]=index, vals[1]=voltage
 
         # PROCESAMIENTO
         sample = self.processor.process_sample(t, v_applied, v_adc_diff, self.current_gain)
@@ -426,8 +464,13 @@ class PotentiostatController:
     def refresh_numeric_displays(self):
         """Actualiza los QLineEdit de tiempo y corriente a una velocidad legible."""
         # 1. Actualizar Tiempo
-        self.view.TimeDisplay.setText(f" Time:   {self.last_time_s:.2f} s")
+        #self.view.TimeDisplay.setText(f" Time:   {self.last_time_s:.2f} s")
+        if self._experiment_start_time is not None:
+            elapsed = time.time() - self._experiment_start_time
+        else:
+            elapsed = self.last_time_s
 
+        self.view.TimeDisplay.setText(f" Time:   {elapsed:.2f} s")
         # 2. Lógica de Auto-escala para Corriente
         abs_current = abs(self.last_raw_current_ma)
         
@@ -482,6 +525,35 @@ class PotentiostatController:
             
         return params
 
+    def _on_dispositivo_desconectado(self):
+        """Maneja la desconexión física inesperada del dispositivo."""
+        logging.warning("Physical disconnection detected.")
+
+        # Detener timers si había experimento en curso
+        if self.comm_state not in ("IDLE",):
+            self.graph_update_timer.stop()
+            self.display_update_timer.stop()
+            self.progress_timer.stop()
+            if self.worker:
+                self.worker.cerrar_archivo_respaldo()
+            logging.warning("Experiment interrupted by physical disconnection.")
+
+        # Resetear FSM y UI
+        self.reset_comm_flow()
+        self.comm_state = "IDLE"
+        self.view.actualizar_ui_conexion("DISCONNECTED", "Status:   DISCONNECTED")
+
+        # Warning dialog — debe ir acá en el hilo principal, nunca en el worker
+        msg = QMessageBox(self.view)
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setWindowTitle("Device Disconnected")
+        msg.setText("The potentiostat has been physically disconnected.")
+        msg.setInformativeText("Please reconnect the device. The application will attempt to reconnect automatically.")
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.exec()
+
+        # Iniciar reconexión automática después de que el usuario cierre el dialog
+        QTimer.singleShot(2000, self.intentar_autoconexion_bucle)
 
     def detener_comunicacion(self):
         if self.worker:
@@ -752,6 +824,8 @@ class PotentiostatController:
         self.processor.clear_data()
         self.graph.clear_graph()
         self.view.progressBar.setValue(0)
+        self.view.CurrentDisplay.setText("Current:   00.000")
+        self.view.TimeDisplay.setText(" Time:   00.00 s")
         logging.debug("Graphic and Data Historial Reset.")
 
     

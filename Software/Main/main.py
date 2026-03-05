@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 import ctypes
 import logging
 from PyQt6 import QtWidgets, uic
@@ -7,6 +7,7 @@ from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMessageBox
 from controller import PotentiostatController
+from modules.utils import get_resource_dir
 
 
 # Cambiar a logging.DEBUG para ver todos los mensajes, logging.WARNING para silenciarlos en producción
@@ -24,13 +25,15 @@ try:
 except Exception:
     pass
 
+
+    
 class PotenciostatoApp(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         
     # --- GESTIÓN DE RUTAS DINÁMICAS ---
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        ui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gui', 'main_windows_gui.ui')
+        base_dir = get_resource_dir()
+        ui_path = os.path.join(get_resource_dir(), 'gui', 'main_windows_gui.ui')
         
         # Rutas de los dos logos
         ruta_icono_ventana = os.path.join(base_dir, 'logos', 'logo_GIAQA_blanca.png') # El de la barra/esquina

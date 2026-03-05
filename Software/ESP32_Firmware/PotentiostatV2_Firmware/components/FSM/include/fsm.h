@@ -49,6 +49,7 @@ void                    transition_state_FSM        (potentiostat_fsm_t *fsm, sy
 potentiostat_fsm_t*     get_fsm_pointer             (void);
 TaskHandle_t*           get_ExpControlTask_pointer  (void);
 exp_config*             get_exp_config_pointer      (void);
+DEPO_PRECOND_config*    get_precond_config_pointer  (void);
 
 
 
