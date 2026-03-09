@@ -36,17 +36,30 @@ This project represents the **second generation** of the "All-in-One" potentiost
     * **Why?** To achieve **deterministic timing** and modular flexibility.
     * **Improvements:** Modular hardware design suitable for extension, significantly lower power consumption, reduced noise floor (nanoampere-level), and the ability to perform fast electrochemical screening without a heavy OS overhead.
 
+
 ## 🛠️ Hardware & Components
 
 The hardware is designed to support nanoampere-level current measurements with a robust analog front-end.
+- **KiCad PCB design**
+- **MCU:** **ESP32-WROOM/WROVER** (Dual-core, 240 MHz). Handles waveform generation (DAC control), data acquisition (ADC readings), and wireless communication.
+- **Analog Front-End (TIA + Control Amplifier):**
+    - Improved topology using **High-Precision Rail-to-Rail OpAmps** (e.g., LMP770x Series and LM7721) for the Transimpedance Amplifier (TIA) and Control Amplifier.
+    - **MAX4737:** Low-voltage, low on-resistance (RON), quad single-pole/single throw (SPST) analog switches.
+    - **MAX4617:** High-Speed, Low-Voltage, CMOS Analog Multiplexers/Switches
+- **ADS1255**: 24-bit ADC High-Speed ADC (replacing the slower ADS1110 of the previous version for an ADS1255) to support faster sweep rates (>1000 mV/s) and filter line noise at low current measurements.
+- **MAX5217**: 16-bit DAC Low-Power with I2C/SPI interface for precise potential steps.
+- **Power Management:** On-board LDOs and precision voltage references (2.500V / 5.000V) to ensure stable operation in field conditions.
+- **Anti-Aliasing:** Active 4th-order Sallen-Key filtering to smooth signal steps and reduce noise.
 
-* **MCU:** **ESP32-WROOM/WROVER** (Dual-core, 240 MHz). Handles waveform generation (DAC control), data acquisition (ADC readings), and wireless communication.
-* **Analog Front-End (AFE):**
-    * **Potentiostat Circuit:** Improved topology using **High-Precision Rail-to-Rail OpAmps** (e.g., LMP7702/MAX series) for the Transimpedance Amplifier (TIA) and Control Amplifier.
-    * **DAC:** 16-bit Low-Power DAC with I2C/SPI interface for precise potential steps.
-    * **ADC:** Upgraded High-Speed ADC (replacing the slower ADS1110 of the previous version for an ADS1255) to support faster sweep rates (>1000 mV/s) and filter line noise at low current measurements.
-    * **Anti-Aliasing:** Active 4th-order Sallen-Key filtering to smooth signal steps and reduce noise.
-* **Power Management:** On-board LDOs and precision voltage references (2.500V / 5.000V) to ensure stable operation in field conditions.
+## Firmware
+
+- **ESP-IDF framework**
+- **FreeRTOS tasks**
+- **SPI driver for ADS1255**
+- **I2C driver for DAC**
+- **State machine for system management**
+- **Baremetal libraries for precise timing during experiments**
+
 ## 📂 Repository Structure
 
 The repository is organized as follows:
@@ -105,6 +118,10 @@ For context on the theoretical background and the first generation of this devic
 > **(All-in-One) Open Source Potentiostat for Field Analysis Based on Raspberry Pi**
 > *Hardware* 2024, 3(4), 17; [https://doi.org/10.3390/hardware3040017](https://www.mdpi.com/2813-6640/3/4/17)
 
-3D Printed Design by [Boris Diaduch](https://www.linkedin.com/in/borisdiaduch/)
+Case Design:
+
+> 3D Printed Design by [Boris Diaduch](https://www.linkedin.com/in/borisdiaduch/)
+
 ---
+
 *Maintained by [Ing. Danilo Coletto Gallego](www.linkedin.com/in/danilocoletto)*
