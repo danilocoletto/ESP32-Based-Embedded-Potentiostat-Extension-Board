@@ -27,23 +27,6 @@ A defining feature of this design is its **controller-agnostic modularity**. The
 * **ESP32 Implementation (Current Focus):** The primary implementation utilizes an **ESP32** microcontroller. This was chosen to provide **hard real-time execution** via FreeRTOS and to enable **wireless connectivity** (Wi-Fi/Bluetooth) for remote field monitoring in the future development.
 * **External Instrumentation:** The header layout and signal routing were specifically designed to allow direct interfacing with test equipment such as the **Analog Discovery 2** (or similar oscilloscopes/logic analyzers). This allows user flexibility to to have alternative control strategies such as an ESP32, ATMEGA, STM32 or even an Analog Discovery.
 
-Electrochemical Cell
-      │
-      ▼
-Analog Front-End
-(TIA + Control Amplifier)
-      │
-      ▼
-ADS1255 24-bit ADC
-      │
-      ▼
-ESP32 (FreeRTOS)
- ├─ DAC Control
- ├─ Data Acquisition
- └─ WiFi / Bluetooth
-      │
-      ▼
-Host Interface / Data Logging
 
 ### 💡 The Evolution: From Single-Board Computer to Real-Time Embedded
 This project represents the **second generation** of the "All-in-One" potentiostat concept.
@@ -69,19 +52,19 @@ The hardware is designed to support nanoampere-level current measurements with a
 The repository is organized as follows:
 
 ```
-├── Diseno_3D/   # Fusion360 project and .stl files for 3D case design
-├── Hardware/    # KiCad project files (Schematics, PCB Layout, BOM)
+├── Diseno_3D/                          # Fusion360 project and .stl files for 3D case design
+├── Hardware/                           # KiCad project files (Schematics, PCB Layout, BOM)
 ├── Software/ 
 │   ├── ESP32_Firmware/ 
 │   │   ├── PotentiostatV2_Firmware/    # ESP-IDF C/C++ source code
-│   │   │   ├── main/   # Core logic (FreeRTOS tasks, State Machine)
-│   │   │   ├── components/     # Drivers for DAC, ADC, and Potentiostat control
-│   │   ├── Main/               # GUI and Python Backend modules
-│   │   │   ├── modules/        # Python backend modules
-│   │   │   ├── logos/          # logos folder
-│   │   │   ├── gui/            # Graphic User Interface .ui file
-├── Información/   # Datasheets and design notes
-└── README.md   # This file
+│   │   │   ├── main/                   # Core logic (FreeRTOS tasks, State Machine)
+│   │   │   ├── components/             # Drivers for DAC, ADC, and Potentiostat control
+│   │   ├── Main/                       # GUI and Python Backend modules
+│   │   │   ├── modules/                # Python backend modules
+│   │   │   ├── logos/                  # logos folder
+│   │   │   ├── gui/                    # Graphic User Interface .ui file
+├── Información/                        # Datasheets and design notes
+└── README.md                           # This file
 ```
 
 ## 🔌 Pinout & Interface
@@ -122,6 +105,6 @@ For context on the theoretical background and the first generation of this devic
 > **(All-in-One) Open Source Potentiostat for Field Analysis Based on Raspberry Pi**
 > *Hardware* 2024, 3(4), 17; [https://doi.org/10.3390/hardware3040017](https://www.mdpi.com/2813-6640/3/4/17)
 
-*3D Printed Design by [Boris Diaduch](https://www.linkedin.com/in/borisdiaduch/)*
+3D Printed Design by [Boris Diaduch](https://www.linkedin.com/in/borisdiaduch/)
 ---
 *Maintained by [Ing. Danilo Coletto Gallego](www.linkedin.com/in/danilocoletto)*
