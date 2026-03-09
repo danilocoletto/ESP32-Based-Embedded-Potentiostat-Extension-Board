@@ -9,7 +9,7 @@ import pyqtgraph.exporters  # ← agregar esta línea
 
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import QTimer
-from PyQt6.QtWidgets import QMessageBox, QFileDialog, QSpinBox, QDoubleSpinBox, QCheckBox, QLineEdit
+from PyQt6.QtWidgets import QMessageBox, QFileDialog, QSpinBox, QDoubleSpinBox, QCheckBox, QLineEdit, QComboBox
 
 
 from modules.data_viewer import DataViewerWindow
@@ -36,6 +36,7 @@ class PotentiostatController:
         # Variable para almacenar el último valor de corriente procesado para displays númericos
         self.last_raw_current_ma = 0.0
         self.last_time_s = 0.0
+        self.last_charge_c = 0.0
 
         # Timer para actualizar los displays numéricos a velocidad humana (4Hz)
         self.display_update_timer = QTimer()
@@ -261,12 +262,12 @@ class PotentiostatController:
         Calcula la duración estimada del experimento en segundos.
         Las fórmulas dependen de la física de cada técnica electroquímica.
         """
+        t_total = 0.0
         if self.current_experiment == "NO_EXPERIMENT":
-            return 0
+            return t_total
 
         # Obtenemos los parámetros de la página actual
         params = self.obtener_parametros_activos()
-        t_total = 0.0
 
         if self.current_experiment == "actionSWV":
             # 1. Tiempo de Quiet Time (Reposición)
@@ -326,14 +327,32 @@ class PotentiostatController:
             t_sweep = distancia_total / scan_rate if scan_rate != 0 else 0
             t_total = t_quiet + t_sweep
 
+        elif self.current_experiment == "actionCPE":
+            params = self.obtener_parametros_activos()
+            time_limit = int(params.get("cpe_time_limit", 1))
+            time_unit  = int(params.get("cpe_time_unit", 0))
+
+            if time_unit == 1:
+                t_total = time_limit * 60
+            else:
+                t_total = time_limit
+            
+        
+        # Al final de calcular_tiempo_total(), antes del logging.debug:
+        if t_total == 0.0:
+            logging.warning("calcular_tiempo_total: t_total es None, usando 1.0 como fallback")
+            t_total = 1.0
+
         logging.debug(f"Estimated experiment time: {t_total:.2f} seconds.")
         return t_total
 
     def update_progress_bar(self):
         """Calcula el porcentaje basado en el tiempo transcurrido del SerialWorker"""
         if self.worker and self.worker.running:
+            if self._experiment_start_time is None:
+                return
             # Obtenemos el tiempo que ya pasó desde el inicio del hilo
-            elapsed = time.time() - self.worker.start_time
+            elapsed = time.time() - self._experiment_start_time
             
             # Calculamos porcentaje
             percentage = int((elapsed / self.total_experiment_time) * 100)
@@ -447,10 +466,20 @@ class PotentiostatController:
             v_adc_diff = vals[1]
 
         elif tipo == "Controlled Potential Electrolysis":
-            v_adc_diff = vals[1]  # vals[0]=index, vals[1]=voltage
+            # El timestamp viene del firmware directamente (vals[0])
+            # Sobreescribimos t con el timestamp del firmware para mayor precisión
+            t          = vals[0]          # timestamp_s del firmware
+            v_applied  = vals[1]                # potencial fijo — no relevante para el gráfico
+            v_adc_diff = vals[2]
+            self.last_charge_c = vals[3]  # guardamos la carga para el display
+            logging.debug(f"CPE sample received: t={t:.3f}s, v={v_adc_diff:.4f}V")
 
         # PROCESAMIENTO
         sample = self.processor.process_sample(t, v_applied, v_adc_diff, self.current_gain)
+
+        # Después de process_sample(), agregar la carga a la última muestra:
+        if tipo == "Controlled Potential Electrolysis":
+            self.processor.data_history[-1].append(self.last_charge_c)
 
         # Estas variables se guardan para el refresco de los displays númericos
         self.last_time_s = sample[0]
@@ -512,7 +541,6 @@ class PotentiostatController:
             self.view.AmpGainDisplay.setText(f"Amplifier Gain: {info['gain_label']}")
 
     def obtener_parametros_activos(self):
-        """Devuelve un diccionario con los valores de los SpinBoxes de la página actual"""
         if self.current_experiment == "NO_EXPERIMENT":
             return None
             
@@ -522,7 +550,17 @@ class PotentiostatController:
         
         for spinbox in page_widget.findChildren((QSpinBox, QDoubleSpinBox)):
             params[spinbox.objectName()] = spinbox.value()
-            
+
+        # ── Agregar QComboBox ──────────────────────────────────────────
+        for combo in page_widget.findChildren(QComboBox):
+            text = combo.currentText().strip().upper()
+            if text in ("MIN", "MINUTES"):
+                params[combo.objectName()] = 1
+            elif text in ("SEC", "SECONDS", "S"):
+                params[combo.objectName()] = 0
+            else:
+                params[combo.objectName()] = combo.currentIndex()
+        
         return params
 
     def _on_dispositivo_desconectado(self):
@@ -575,7 +613,12 @@ class PotentiostatController:
                 with open(file_path, mode='w', newline='') as f:
                     writer = csv.writer(f)
                     # Escribir encabezados requeridos: timestamp, tensión, corriente, filtrada 
-                    writer.writerow(["time_stamp", "v_applied_mv", "raw_current_ma", "current_filtered_ma"])
+                    if self.current_experiment == "actionCPE":
+                        writer.writerow(["Timestamp (s)", "V_applied (mV)", "Current_raw (mA)", 
+                                        "Current_filtered (mA)", "Charge (C)"])
+                    else:
+                        writer.writerow(["Timestamp (s)", "V_applied (mV)", "Current_raw (mA)", 
+                                        "Current_filtered (mA)"])
                     
                     history = self.processor.data_history
                     # Usar historial con Butterworth aplicado en lugar del raw
@@ -783,6 +826,20 @@ class PotentiostatController:
                 elif isinstance(widget, (QSpinBox, QDoubleSpinBox)):
                     valores.append(str(widget.value()))
                 
+
+                # ── NUEVO: QComboBox ──────────────────────────────────────────
+                elif isinstance(widget, QComboBox):
+                    text = widget.currentText().strip().upper()
+                    if text in ("MIN", "MINUTES"):
+                        valores.append("1")
+                    elif text in ("SEC", "SECONDS", "S"):
+                        valores.append("0")
+                    else:
+                        # Fallback: mandar el índice numérico si el texto no matchea
+                        valores.append(str(widget.currentIndex()))
+                # ─────────────────────────────────────────────────────────────
+
+
                 # 4. Fallback para LineEdits u otros
                 elif hasattr(widget, 'text'):
                     valores.append(widget.text())

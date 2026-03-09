@@ -1566,7 +1566,7 @@ QSpinBox:focus {
        <number>1</number>
       </property>
       <property name="maximum">
-       <number>2500</number>
+       <number>32000</number>
       </property>
      </widget>
      <widget class="QLabel" name="label_24">
@@ -1792,6 +1792,9 @@ QComboBox:focus {
       </property>
      </widget>
      <widget class="QCheckBox" name="cpe_min_curr_lim_on_off">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>40</x>
@@ -1846,6 +1849,9 @@ QCheckBox::indicator:disabled {
       </property>
      </widget>
      <widget class="QComboBox" name="cpe_min_curr_lim_unit">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>240</x>
@@ -1915,6 +1921,9 @@ QComboBox:focus {
       </item>
      </widget>
      <widget class="QSpinBox" name="cpe_min_current_limit">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>240</x>
@@ -1964,6 +1973,9 @@ QSpinBox:focus {
       </property>
      </widget>
      <widget class="QCheckBox" name="cpe_charg_lim_on_off">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>70</x>
@@ -2018,6 +2030,9 @@ QCheckBox::indicator:disabled {
       </property>
      </widget>
      <widget class="QSpinBox" name="cpe_charg_limit">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>240</x>
@@ -2067,6 +2082,9 @@ QSpinBox:focus {
       </property>
      </widget>
      <widget class="QComboBox" name="cpe_charg_lim_unit">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>240</x>

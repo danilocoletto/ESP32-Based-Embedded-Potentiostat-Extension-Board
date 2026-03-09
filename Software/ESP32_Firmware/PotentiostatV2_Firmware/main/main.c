@@ -67,7 +67,7 @@ void experiment_exec_task(void *pvParameters)
         }
         else if (main_fsm->current_experiment == EXP_CPE) 
         {
-            //execute_CPE_experiment(&(exp_config_pointer->CPE));
+            execute_CPE_experiment(&(exp_config_pointer->CPE));
         }
         //Al salir de la función (por fin natural o por return 1 de ABORT):
         // Forzamos el retorno al estado WAITING para permitir nuevos comandos.
@@ -139,7 +139,7 @@ void app_main(void)
         "EXP_CONTROL_TASK",      // Nombre
         8192,                   // Stack size (más grande por procesamiento)
         NULL,                   // Parámetros
-        configMAX_PRIORITIES - 2,                     // Prioridad máxima (Crítica para el timing)
+        configMAX_PRIORITIES - 1,                     // Prioridad máxima (Crítica para el timing)
         get_ExpControlTask_pointer(),                   // Handle
         1                       // <--- PINNED TO CORE 1
     );

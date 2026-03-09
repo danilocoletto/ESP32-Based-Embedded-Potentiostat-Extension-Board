@@ -42,6 +42,9 @@ class PotenciostatoApp(QtWidgets.QMainWindow):
         # Cargar la interfaz
         uic.loadUi(ui_path, self)
 
+        # Fijar tamaño de ventana — deshabilitar maximizar y redimensionar
+        self.setFixedSize(1024, 768)
+
         # --- PASO 2: CONFIGURAR ICONO DE VENTANA Y BARRA DE TAREAS ---
         if os.path.exists(ruta_icono_ventana):
             pix_icono = QPixmap(ruta_icono_ventana)

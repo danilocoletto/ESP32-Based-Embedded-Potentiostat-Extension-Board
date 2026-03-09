@@ -184,6 +184,9 @@ uint8_t execute_SWV_experiment(SWV_config *config)
     int16_t dacindex = config->initial_pot_mv; 
 
     swv_packet_t pkt;
+    pkt.header[0] = HEADER_SWV[0]; 
+    pkt.header[1] = HEADER_SWV[1];
+    pkt.tail = PACKET_TAIL[0];
     float forward = 0;
     float reverse = 0;
 
@@ -272,9 +275,11 @@ uint8_t execute_SWV_experiment(SWV_config *config)
         
         // El tiempo que tarden estas funciones es absorbido por el inicio 
         // de la próxima iteración porque t_target no se resetea.
-        uart_write_bytes(UART_NUM_0, HEADER_SWV, HEADER_SWV_SIZE);
-        uart_write_bytes(UART_NUM_0, &pkt, sizeof(pkt));
-        uart_write_bytes(UART_NUM_0, PACKET_TAIL, TAIL_SIZE);
+        uart_write_bytes(UART_NUM_0, &pkt, sizeof(swv_packet_t));
+
+        //uart_write_bytes(UART_NUM_0, HEADER_SWV, HEADER_SWV_SIZE);
+        //uart_write_bytes(UART_NUM_0, &pkt, sizeof(pkt));
+        //uart_write_bytes(UART_NUM_0, PACKET_TAIL, TAIL_SIZE);
 
         if (direction == 1) 
             dacindex += config->step_pot_mv;
@@ -644,8 +649,122 @@ uint8_t execute_PA_experiment(PA_config *config)
     return 0;
 }
 
-//Constant Potential Electrolysis
+
+/**
+ * @brief Executes a Controlled Potential Electrolysis (CPE) experiment.
+ *
+ * Applies a fixed potential and samples current at regular intervals.
+ * Integrates current over time to calculate accumulated charge (Faraday's law).
+ * Experiment ends when time limit is reached or ABORT_FLAG is set.
+ *
+ * @param[in] config Pointer to CPE configuration structure:
+ * - applied_pot_mv:    Applied potential in millivolts.
+ * - sample_interval_s: Time between samples in seconds (0.001 to 100.0).
+ * - time_limit_s:      Maximum experiment duration in seconds.
+ * - time_unit:         0 = seconds, 1 = minutes (already converted before call).
+ * - quiet_time_s:      Equilibration time before experiment starts.
+ *
+ * @return 0 on normal completion, 1 on abort.
+ */
 uint8_t execute_CPE_experiment(CPE_config *config)
 {
+    cpe_packet_t pkt;
+    int64_t time_limit_us;
+    pkt.header[0] = HEADER_CPE[0];  // 0xEE
+    pkt.header[1] = HEADER_CPE[1];  // 0xFF
+    pkt.tail      = PACKET_TAIL[0];
+    pkt.applied_pot = config->applied_pot_mv;
+
+    // Convertir sample interval a microsegundos
+    uint32_t sample_interval_us = (uint32_t)(config->sample_interval_s * 1000000.0f);
+
+    // Umbral para decidir busy-wait vs vTaskDelay
+    const uint32_t BUSY_WAIT_THRESHOLD_US = 10000;  // 10 ms
+
+    float charge_c    = 0.0f;
+    float current_prev = 0.0f;
+    bool  first_sample = true;
+
+    // Configurar DAC y despertar ADC
+    ADS125X_WAKEUP_HAL();
+    VOLT_EXP_START();
+    MAX5217_DAC_WRITE_HAL_MV(config->applied_pot_mv);
+    vTaskDelay(pdMS_TO_TICKS(20));  // 20ms es suficiente para la mayoría de opamps
+
+    // Sincronización temporal absoluta
+    int64_t t_start  = esp_timer_get_time();
+    int64_t t_target = t_start;
+    
+    if (config->time_unit == 0)
+        time_limit_us = (int64_t)(config->time_limit * 1000000LL);
+    else
+        time_limit_us = (int64_t)(config->time_limit * 60 * 1000000LL);
+
+
+    // ── LOOP PRINCIPAL ────────────────────────────────────────────────────────
+    while (true)
+    {
+        if (ABORT_FLAG) goto abort_cpe;
+
+        if ((esp_timer_get_time() - t_start) >= time_limit_us) break;
+
+        // Próximo instante de muestreo
+        t_target += sample_interval_us;
+
+        // Leer ADC
+        ADS125X_WAIT_DYDR_HAL();
+        float current_v = ADS125X_READVOLT_HAL();
+
+        // Calcular timestamp en segundos desde inicio
+        float timestamp_s = (float)(esp_timer_get_time() - t_start) / 1000000.0f;
+
+        // Integrar carga con método del trapecio
+        if (first_sample) {
+            current_prev = current_v;
+            first_sample = false;
+        } else {
+            charge_c += (current_prev + current_v) * 0.5f * config->sample_interval_s;
+            current_prev = current_v;
+        }
+
+        // Armar y enviar paquete
+        pkt.timestamp_s = timestamp_s;
+        pkt.current_v   = current_v;
+        pkt.charge_c    = charge_c;
+        uart_write_bytes(UART_NUM_0, &pkt, sizeof(cpe_packet_t));
+
+        // Espera hasta el próximo instante de muestreo
+        int64_t elapsed = esp_timer_get_time() - (t_target - sample_interval_us);
+        int64_t to_wait = (int64_t) sample_interval_us - elapsed;
+
+        if (to_wait > 0) {
+            if (sample_interval_us < BUSY_WAIT_THRESHOLD_US) {
+                // Intervalo corto — busy-wait preciso
+                esp_rom_delay_us((uint32_t)to_wait);
+            } else {
+                // Intervalo largo — yield al scheduler, con chequeo de abort
+                int64_t wait_until = esp_timer_get_time() + to_wait;
+                while (esp_timer_get_time() < wait_until) {
+                    if (ABORT_FLAG) 
+                        goto abort_cpe;
+                    vTaskDelay(pdMS_TO_TICKS(5));
+                }
+            }
+        }
+        // Si to_wait <= 0 el loop se atrasó — continuar inmediatamente
+        // t_target ya está adelantado, se recupera en la siguiente iteración
+    }
+
+    // Finalización normal
+    VOLT_EXP_STOP();
+    ADS125X_STANDBY_HAL();
+    uart_write_bytes(UART_NUM_0, MSG_FINISHED, strlen(MSG_FINISHED));
     return 0;
+
+abort_cpe:
+    VOLT_EXP_STOP();
+    ADS125X_STANDBY_HAL();
+    uart_write_bytes(UART_NUM_0, MSG_FINISHED, strlen(MSG_FINISHED));
+    ABORT_FLAG = 0;
+    return 1;
 }

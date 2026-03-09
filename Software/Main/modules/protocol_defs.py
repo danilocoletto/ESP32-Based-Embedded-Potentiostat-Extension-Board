@@ -67,8 +67,8 @@ EXPERIMENT_CONFIG = {
     },
     b'\xee\xff': {
         "nombre": "Controlled Potential Electrolysis",
-        "format": "<hff",   # Index, Voltage, Current
-        "size": 10,
+        "format": "<ffff",   # Index, Voltage, Current, Charge
+        "size": 16,
         "suffix_size": 1 # Agregamos una marca para el byte de fin
     },
     b'\xab\xab': {
@@ -156,7 +156,7 @@ PAQUETES_CONFIG = {
     "actionCPE": {
         "header": "CONF_CPE",
         "params": [
-            "cpe_applied_pot", "cpe_sample_interval", "cpe_time_limit",
+            "cpe_applied_pot", "cpe_sample_interval", "cpe_time_limit", "cpe_time_unit",
             # Posición 4: FLAG ACTIVACIÓN 
             "cpe_min_curr_lim_on_off","cpe_min_current_limit", "cpe_min_curr_lim_unit",
             # Posición 7: FLAG ACTIVACIÓN

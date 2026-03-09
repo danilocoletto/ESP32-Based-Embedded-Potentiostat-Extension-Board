@@ -29,6 +29,7 @@
 #define CMD_E_STATUS            "E_STATUS"
 #define CMD_CONF_SWV            "CONF_SWV:"
 #define CMD_CONF_LSV            "CONF_LSV:"
+#define CMD_CONF_CPE            "CONF_CPE:"
 #define CMD_START_EXP           "START_EXP"
 #define CMD_CONF_GAIN           "SET_GAIN:"
 

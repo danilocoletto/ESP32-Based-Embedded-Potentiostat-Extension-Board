@@ -80,10 +80,19 @@ typedef struct {
     uint16_t time_limit_s;
 } PA_config;
 
+// Config
 typedef struct {
-    int16_t applied_pot_mv;
-    uint16_t sample_int_s;
-    uint16_t time_limit_s;
+    int16_t  applied_pot_mv;
+    float    sample_interval_s;
+    uint64_t time_limit;      // ya convertido a segundos
+    uint8_t  time_unit;
+    uint8_t  min_curr_lim_on_off;
+    float    min_current_limit;
+    //float    min_curr_lim_unit;
+    uint8_t charg_lim_on_off;
+    float    min_charg_limit;
+    //float    charg_lim_unit;
+
 } CPE_config;
 
 typedef union {
@@ -95,9 +104,11 @@ typedef union {
 
 
 typedef struct __attribute__((packed)) {
+    uint8_t header[2];
     int16_t lastindex;
     float forward;
     float reverse;
+    uint8_t tail;
 } swv_packet_t;
 
 // Nueva estructura específica para LSV/CV con resolución decimal
@@ -107,6 +118,16 @@ typedef struct __attribute__((packed)) {
     float voltage_meas;
     uint8_t tail;
 } lsv_cv_packet_t;
+
+// Estructura del paquete — 15 bytes
+typedef struct __attribute__((packed)) {
+    uint8_t header[2];
+    float   timestamp_s;
+    float   applied_pot;
+    float   current_v;
+    float   charge_c;
+    uint8_t tail;
+} cpe_packet_t;
 
 bool        get_Electrodes_State        (void);
 bool        get_Agitator_State          (void);
