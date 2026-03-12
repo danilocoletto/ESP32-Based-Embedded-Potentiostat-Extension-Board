@@ -120,7 +120,7 @@ For context on the theoretical background and the first generation of this devic
 
 Case Design:
 
-> 3D Printed Design by [Boris Diaduch](https://www.linkedin.com/in/borisdiaduch/)
+> *3D Printed Design by [Boris Diaduch](https://www.linkedin.com/in/borisdiaduch/)*
 
 ---
 

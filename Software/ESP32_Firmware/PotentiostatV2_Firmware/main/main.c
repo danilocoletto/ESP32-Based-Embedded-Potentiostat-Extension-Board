@@ -4,7 +4,6 @@
 
 
 // Tus librerías
-#include "gpio_config.h"
 #include "ads1255.h"
 #include "max5217.h"
 #include "general.h"
@@ -117,31 +116,31 @@ void app_main(void)
     // Variables LED
     int led_state = 0;
 
-    // 2. Inicialización de periféricos (DAC, ADS1255, GPIOs)
+    // Inicialización de periféricos (DAC, ADS1255, GPIOs)
     // init_potentiostat_hardware();
 
-    // 3. Creación de la Tarea de Comunicaciones (Core 0)
+    // Creación de la Tarea de Comunicaciones (Core 0)
     // Se encarga de la FSM, encuestas y configuración.
     xTaskCreatePinnedToCore(
-        uart_task,          // Función de la tarea
-        "UART_COMMS_TASK",      // Nombre
-        4096,                   // Stack size
-        NULL,                   // Parámetros
-        10,                     // Prioridad alta
-        &xTaskUARTControlHandle,                   // Handle
-        0                       // <--- PINNED TO CORE 0
+        uart_task,                  // Función de la tarea
+        "UART_COMMS_TASK",          // Nombre
+        4096,                       // Stack size
+        NULL,                       // Parámetros
+        10,                         // Prioridad alta
+        &xTaskUARTControlHandle,    // Handle
+        0                           // <--- PINNED TO CORE 0
     );
 
-    // 4. Creación de la Tarea de Ejecución (Core 1)
+    // Creación de la Tarea de Ejecución (Core 1)
     // Se encarga del lazo de control y lectura del ADC.
     xTaskCreatePinnedToCore(
-        experiment_exec_task,   // Función de la tarea
-        "EXP_CONTROL_TASK",      // Nombre
-        8192,                   // Stack size (más grande por procesamiento)
-        NULL,                   // Parámetros
-        configMAX_PRIORITIES - 1,                     // Prioridad máxima (Crítica para el timing)
+        experiment_exec_task,       // Función de la tarea
+        "EXP_CONTROL_TASK",         // Nombre
+        8192,                       // Stack size (más grande por procesamiento)
+        NULL,                       // Parámetros
+        configMAX_PRIORITIES - 1,   // Prioridad máxima (Crítica para el timing)
         get_ExpControlTask_pointer(),                   // Handle
-        1                       // <--- PINNED TO CORE 1
+        1                           // <--- PINNED TO CORE 1
     );
     
 }

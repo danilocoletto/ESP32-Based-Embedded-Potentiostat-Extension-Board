@@ -18,7 +18,6 @@ MIT License
 
 #include <math.h>
 // Own Libraries
-#include "gpio_config.h"
 #include "ads1255.h"
 #include "max5217.h"
 #include "muxes.h"
