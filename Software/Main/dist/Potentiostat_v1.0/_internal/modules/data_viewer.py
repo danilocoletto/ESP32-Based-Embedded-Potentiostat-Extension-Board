@@ -131,26 +131,25 @@ class DataViewerWindow(QWidget):
         return color
 
     def _load_csv(self, file_path):
-        """Lee el CSV y retorna (x, i_ua, tipo) o None si el formato es inválido."""
         try:
             with open(file_path, newline='') as f:
                 reader = csv.DictReader(f)
                 fieldnames = set(reader.fieldnames or [])
 
-                # CPE: Timestamp vs Current
-                if {'Timestamp (s)', 'Current_filtered (mA)'}.issubset(fieldnames):
+                # CPE: tiene Charge (C) — columna exclusiva
+                if 'Charge (C)' in fieldnames:
                     x, i = [], []
                     for row in reader:
                         x.append(float(row['Timestamp (s)']))
                         i.append(float(row['Current_filtered (mA)']))
                     return np.array(x), np.array(i), 'CPE'
 
-                # SWV/LSV: Potential vs Current
-                elif {'v_applied_mv', 'current_filtered_ma'}.issubset(fieldnames):
+                # SWV/LSV/DPV: tiene v_applied_mv — columna exclusiva
+                elif 'V_applied (mV)' in fieldnames:
                     x, i = [], []
                     for row in reader:
-                        x.append(float(row['v_applied_mv']))
-                        i.append(float(row['current_filtered_ma']))
+                        x.append(float(row['V_applied (mV)']))
+                        i.append(float(row['Current_filtered (mA)']))
                     return np.array(x), np.array(i), 'VOLTAMMETRY'
 
                 return None

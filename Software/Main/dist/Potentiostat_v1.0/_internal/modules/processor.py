@@ -138,11 +138,11 @@ class PotentiostatGraph:
         'font-weight': 'bold'        # <--- ESTO PONE LA LETRA EN NEGRITA
         }
 
-        if action_name in ["NO_EXPERIMENT", "actionSWV", "actionLSV/CV"]:
-            self.plot.setLabel('bottom', 'Potential', units='mV', **axis_style)
-            self.plot.setLabel('left', 'Current', units='mA', **axis_style)
-        elif action_name == "actionCPE":
+        if action_name == "actionCPE":
             self.plot.setLabel('bottom', 'Time', units='s', **axis_style)
+            self.plot.setLabel('left', 'Current', units='mA', **axis_style)
+        else:
+            self.plot.setLabel('bottom', 'Potential', units='mV', **axis_style)
             self.plot.setLabel('left', 'Current', units='mA', **axis_style)
 
     def update(self, history, experiment_id=None):

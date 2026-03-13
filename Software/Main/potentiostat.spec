@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-# PyInstaller spec file — Potentiostat v1.0
+# PyInstaller spec file — Potentiostat v1.1
 # Generado para el proyecto ESP32-Based Embedded Potentiostat
 #
 # USO:
