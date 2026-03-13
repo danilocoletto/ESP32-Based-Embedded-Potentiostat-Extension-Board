@@ -12,8 +12,8 @@ from modules.utils import get_resource_dir
 
 # Cambiar a logging.DEBUG para ver todos los mensajes, logging.WARNING para silenciarlos en producción
 
-#logging.basicConfig(level=logging.DEBUG, format='%(message)s')    # desarrollo — muestra todo
-logging.basicConfig(level=logging.INFO, format='%(message)s')     # prudcción —  muestra info también
+logging.basicConfig(level=logging.DEBUG, format='%(message)s')    # desarrollo — muestra todo
+#logging.basicConfig(level=logging.INFO, format='%(message)s')     # prudcción —  muestra info también
 #logging.basicConfig(level=logging.WARNING, format='%(message)s')  # producción — solo errores
 
 # pero para lo que venga de PyQt6 usá WARNING
@@ -78,7 +78,7 @@ class PotenciostatoApp(QtWidgets.QMainWindow):
 
 
 
-        self.setWindowTitle("Lab Potentiostat Interface V1.0")
+        self.setWindowTitle("Lab Potentiostat Interface V1.1")
         # Inicializar el controlador pasándole esta vista (self)
         self.controller = PotentiostatController(self)
 
@@ -97,6 +97,7 @@ class PotenciostatoApp(QtWidgets.QMainWindow):
         self.actionSWV.triggered.connect(lambda: self.controller.seleccionar_experimento("actionSWV"))
         self.actionLSV_CV.triggered.connect(lambda: self.controller.seleccionar_experimento("actionLSV/CV"))
         self.actionCPE.triggered.connect(lambda: self.controller.seleccionar_experimento("actionCPE"))
+        self.actionDPV.triggered.connect(lambda: self.controller.seleccionar_experimento("actionDPV"))
 
         self.actionReset_Instrument.triggered.connect(self.controller.reset_instrumento)
 

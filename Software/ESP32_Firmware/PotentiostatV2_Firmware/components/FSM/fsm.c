@@ -129,7 +129,25 @@ static void process_line_FSM (potentiostat_fsm_t *fsm)
                     uart_write_bytes(UART_NUM_0, MSG_CONF_ERR, strlen(MSG_CONF_ERR));
                 }
             }
-            else if (strncmp(cmd, "CONF_CPE:", 8) == 0)
+            else if (strncmp(cmd, CMD_CONF_DPV, strlen(CMD_CONF_DPV)) == 0) 
+            {
+                fsm->current_experiment = EXP_DPV;
+                int res = sscanf(cmd + strlen(CMD_CONF_DPV), "%hd, %hd, %hu, %hu, %hu, %hu, %hu",                                                      
+                                 &experiment_config.DPV.initial_pot_mv, &experiment_config.DPV.final_pot_mv,                                       // FALTA VER EL PREACONDICIONAMIENTO QUE
+                                 &experiment_config.DPV.step_pot_mv, &experiment_config.DPV.pulse_width_ms,                                         // QUE SE DEBE TENER EN CUENTA ACA
+                                 &experiment_config.DPV.pulse_period_ms, &experiment_config.DPV.pulse_amplitude_mv, &experiment_config.DPV.quiet_time_s);
+                
+                if (experiment_config.DPV.pulse_period_ms <= experiment_config.DPV.pulse_width_ms)
+                {
+                    uart_write_bytes(UART_NUM_0, MSG_CONF_ERR, strlen(MSG_CONF_ERR));
+                }
+                if (res == 7) {
+                    uart_write_bytes(UART_NUM_0, MSG_CONF_OK, strlen(MSG_CONF_OK));
+                } else {
+                    uart_write_bytes(UART_NUM_0, MSG_CONF_ERR, strlen(MSG_CONF_ERR));
+                }
+            }
+            else if (strncmp(cmd, CMD_CONF_CPE, strlen(CMD_CONF_CPE)) == 0)
             {
                 fsm->current_experiment = EXP_CPE;
                 int res = sscanf(cmd + strlen(CMD_CONF_CPE), "%hd, %f, %lld, %hhd",                                                      

@@ -327,6 +327,20 @@ class PotentiostatController:
             t_sweep = distancia_total / scan_rate if scan_rate != 0 else 0
             t_total = t_quiet + t_sweep
 
+        elif self.current_experiment == "actionDPV":
+            params = self.obtener_parametros_activos()
+    
+            v_init  = float(params.get("dpv_initial_pot", 0))
+            v_final = float(params.get("dpv_final_pot", 0))
+            step    = float(params.get("dpv_step_pot", 1))
+            period  = float(params.get("dpv_pulse_period", 100))  # en ms
+            t_quiet = float(params.get("dpv_quiet_time", 0))
+            
+            n_steps = abs(v_final - v_init) / step if step != 0 else 0
+            t_sweep = n_steps * (period / 1000.0)  # convertir ms a segundos
+            
+            t_total = t_quiet + t_sweep
+
         elif self.current_experiment == "actionCPE":
             params = self.obtener_parametros_activos()
             time_limit = int(params.get("cpe_time_limit", 1))
@@ -365,6 +379,27 @@ class PotentiostatController:
         else:
             self.progress_timer.stop()
 
+
+    def _actualizar_dpv_scan_rate(self):
+        idx = EXPERIMENT_PAGES["actionDPV"]["index"]
+        page_widget = self.view.stackedWidget.widget(idx)
+
+        step_widget   = page_widget.findChild(QSpinBox, "dpv_step_pot")
+        period_widget = page_widget.findChild(QSpinBox, "dpv_pulse_period")
+        result_widget = page_widget.findChild(QSpinBox, "dpv_scan_rate")
+
+        if not all([step_widget, period_widget, result_widget]):
+            return
+
+        period_ms = period_widget.value()
+        if period_ms > 0:
+            scan_rate = int(round(step_widget.value() / (period_ms / 1000.0)))
+        else:
+            scan_rate = 0
+
+        result_widget.setValue(scan_rate)
+
+
     def seleccionar_experimento(self, action_name):
         """Cambia la técnica solo si no hay un experimento en curso."""
         # BLOQUEO DE SEGURIDAD
@@ -381,6 +416,26 @@ class PotentiostatController:
             self.graph.set_experiment_mode(action_name)
             self.view.stackedWidget.setCurrentIndex(config["index"])
             logging.debug(f"Selected Experiment: {config['nombre']}")
+
+            # ── Conexiones específicas por técnica ────────────────────
+            if action_name == "actionDPV":
+                idx = EXPERIMENT_PAGES["actionDPV"]["index"]
+                page_widget = self.view.stackedWidget.widget(idx)
+
+                step_widget   = page_widget.findChild(QSpinBox, "dpv_step_pot")
+                period_widget = page_widget.findChild(QSpinBox, "dpv_pulse_period")
+
+                if step_widget and period_widget:
+                    try:
+                        step_widget.valueChanged.disconnect(self._actualizar_dpv_scan_rate)
+                        period_widget.valueChanged.disconnect(self._actualizar_dpv_scan_rate)
+                    except TypeError:
+                        pass
+
+                    step_widget.valueChanged.connect(self._actualizar_dpv_scan_rate)
+                    period_widget.valueChanged.connect(self._actualizar_dpv_scan_rate)
+
+                self._actualizar_dpv_scan_rate()
 
     
     def reset_instrumento(self):
@@ -464,6 +519,9 @@ class PotentiostatController:
         elif tipo == "Linear/Cyclic Voltammetry":
             # CV ya envía la corriente neta o el valor directo en vals[1]
             v_adc_diff = vals[1]
+
+        elif tipo == "Differential Pulse Voltammetry":
+            v_adc_diff = vals[2] - vals[1]  # i_pulse - i_base
 
         elif tipo == "Controlled Potential Electrolysis":
             # El timestamp viene del firmware directamente (vals[0])

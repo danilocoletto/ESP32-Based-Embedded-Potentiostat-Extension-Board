@@ -32,6 +32,7 @@
 #define CMD_E_STATUS            "E_STATUS"
 #define CMD_CONF_SWV            "CONF_SWV:"
 #define CMD_CONF_LSV            "CONF_LSV:"
+#define CMD_CONF_DPV            "CONF_DPV:"
 #define CMD_CONF_CPE            "CONF_CPE:"
 #define CMD_START_EXP           "START_EXP"
 #define CMD_CONF_GAIN           "SET_GAIN:"
@@ -50,7 +51,7 @@
 #define MSG_CELL_CONNECTED      "CELL1\n"
 #define MSG_CELL_DISCONNECTED   "CELL0\n"
 #define MSG_ID_STR              "POTENTIOSTAT_V2.0\n"
-#define MSG_FIRMWARE            "FIRM_V1.0\n"
+#define MSG_FIRMWARE            "FIRM_V1.1\n"
 
 
 // --- CONFIGURACIÓN UART ---

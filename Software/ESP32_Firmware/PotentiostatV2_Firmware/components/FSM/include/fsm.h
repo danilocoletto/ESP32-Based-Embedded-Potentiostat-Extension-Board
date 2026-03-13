@@ -31,6 +31,7 @@ typedef enum {
     EXP_NONE = 0,
     EXP_SWV,
     EXP_LSV,
+    EXP_DPV,
     EXP_CPE
 } experiment_type_t;
 

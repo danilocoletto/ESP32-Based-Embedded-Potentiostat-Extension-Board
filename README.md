@@ -67,6 +67,11 @@ The repository is organized as follows:
 ```
 ├── Diseno_3D/                          # Fusion360 project and .stl files for 3D case design
 ├── Hardware/                           # KiCad project files (Schematics, PCB Layout, BOM)
+├── Images&Schematics/
+│   ├── Images/
+│   ├── Interface/
+│   ├── Renders/
+│   ├── Schematics/
 ├── Software/ 
 │   ├── ESP32_Firmware/ 
 │   │   ├── PotentiostatV2_Firmware/    # ESP-IDF C/C++ source code

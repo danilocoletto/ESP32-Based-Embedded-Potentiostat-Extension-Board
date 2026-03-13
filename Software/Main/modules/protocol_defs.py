@@ -72,11 +72,17 @@ EXPERIMENT_CONFIG = {
         "suffix_size": 1 # Agregamos una marca para el byte de fin
     },
     b'\xab\xab': {
+        "nombre": "Differential Pulse Voltammetry",
+        "format": "<hff",    # Time_Internal, Current
+        "size": 10,
+        "suffix_size": 1 # Agregamos una marca para el byte de fin
+    },
+    b'\xcd\xcd': {
         "nombre": "Chronoamperometry",
         "format": "<ff",    # Time_Internal, Current
         "size": 8
     },
-    b'\xcd\xcd': {
+    b'\xef\xef': {
         "nombre": "Potentiometry",
         "format": "<f",     # Voltage_Only
         "size": 4
@@ -87,7 +93,8 @@ EXPERIMENT_PAGES = {
     "NO_EXPERIMENT": {"index": 0, "nombre": "None", "page_name": "EmptyPage"},
     "actionSWV": {"index": 1, "nombre": "Square Wave Voltammetry", "page_name": "page1_SWV"},
     "actionLSV/CV": {"index": 2, "nombre": "Linear/Cyclic Voltammetry", "page_name": "page2_LSV_CV"},
-    "actionCPE": {"index": 3, "nombre": "Controlled Potential Electrolysis", "page_name": "page3_CPE"}
+    "actionCPE": {"index": 3, "nombre": "Controlled Potential Electrolysis", "page_name": "page3_CPE"},
+    "actionDPV": {"index": 4, "nombre": "Differential Pulse Voltammetry", "page_name": "page4_DPV"}
 }
 
 
@@ -163,5 +170,13 @@ PAQUETES_CONFIG = {
             "cpe_charg_lim_on_off", "cpe_charg_limit", "cpe_charg_lim_unit"
         ]
     },
+        "actionDPV": {
+        "header": "CONF_DPV",
+        "params": [
+            "dpv_initial_pot", "dpv_final_pot", "dpv_step_pot", "dpv_pulse_width",
+            "dpv_pulse_period", "dpv_pulse_amplitude","dpv_quiet_time"
+            ""
+        ]
+    }
 
 }

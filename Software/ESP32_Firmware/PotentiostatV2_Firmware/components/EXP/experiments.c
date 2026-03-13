@@ -16,6 +16,7 @@ MIT License
 #include "experiments.h"
               
 
+
 /********************************************************************************/
 /*                      Global Variables for Experiments                        */
 /********************************************************************************/
@@ -642,7 +643,164 @@ abort_experiment:
     return 1;
 }*/
 
+/**
+ * @brief Executes a Differential Pulse Voltammetry (DPV) experiment.
+ *
+ * Applies a staircase ramp with superimposed fixed-direction pulses.
+ * Current is sampled twice per step: at the end of the base period (I_base)
+ * and at the end of the pulse (I_pulse). The reported signal is ΔI = I_pulse - I_base,
+ * which cancels capacitive charging current.
+ *
+ * @param[in] config Pointer to DPV configuration structure:
+ * - initial_pot_mv:   Start potential in millivolts.
+ * - final_pot_mv:     End potential in millivolts.
+ * - step_pot_mv:      Staircase step height in millivolts.
+ * - pulse_width_ms:   Duration of the pulse in milliseconds.
+ * - pulse_period_ms:  Total period per step in milliseconds (must be > pulse_width_ms).
+ * - pulse_amplitude_mv: Pulse height in millivolts (always added in scan direction).
+ * - quiet_time_s:     Equilibration time before scan starts in seconds.
+ *
+ * @return 0 on normal completion, 1 on abort.
+ */
+uint8_t execute_DPV_experiment(DPV_config *config)
+{
+    uint8_t direction;
+    int16_t dacindex = config->initial_pot_mv;
 
+    dvp_packet_t pkt;
+    pkt.header[0] = HEADER_DPV[0];
+    pkt.header[1] = HEADER_DPV[1];
+    pkt.tail      = PACKET_TAIL[0];
+
+    float i_base  = 0.0f;
+    float i_pulse = 0.0f;
+
+    // Dirección del barrido
+    direction = (config->initial_pot_mv < config->final_pot_mv) ? 1 : 0;
+
+    // Conversión de tiempos a microsegundos
+    // pulse_period > pulse_width siempre — validar en la interfaz
+    uint32_t pulse_width_us  = (uint32_t)(config->pulse_width_ms  * 1000UL);
+    uint32_t base_width_us   = (uint32_t)(config->pulse_period_ms * 1000UL) - pulse_width_us;
+
+    uint32_t prop_delay_us = ADS125X_Get_Prop_Delay_Us();
+
+    ADS125X_WAKEUP_HAL();
+    ADS125X_STANDBY_HAL();
+    VOLT_EXP_START();
+
+    // Quiet time
+    if (config->quiet_time_s > 0)
+    {
+        int64_t quiet_until = esp_timer_get_time() + (config->quiet_time_s * 1000000LL);
+        while (esp_timer_get_time() < quiet_until)
+        {
+            if (ABORT_FLAG) 
+                goto abort_dpv;
+            vTaskDelay(pdMS_TO_TICKS(10));
+        }
+    }
+
+    // Sincronización absoluta inicial
+    int64_t t_target = esp_timer_get_time();
+
+    // ── LOOP PRINCIPAL ────────────────────────────────────────────────────────
+    while ((direction == 1 && dacindex <= config->final_pot_mv) ||
+           (direction == 0 && dacindex >= config->final_pot_mv))
+    {
+        if (ABORT_FLAG) 
+            goto abort_dpv;
+
+        // ====================================================
+        // FASE 1: BASE
+        // ====================================================
+        t_target += base_width_us;
+
+        MAX5217_DAC_WRITE_HAL_MV(dacindex);
+
+        // Espera híbrida hasta el trigger del ADC
+        int64_t t_adc_trigger = t_target - prop_delay_us;
+        int64_t remaining = t_adc_trigger - esp_timer_get_time();
+        if (remaining > 2000) {
+            vTaskDelay(pdMS_TO_TICKS(remaining / 1000 - 1));
+        }
+        while (esp_timer_get_time() < t_adc_trigger);
+
+        ADS125X_WAKEUP_HAL();
+        ADS125X_WAIT_DYDR_HAL();
+        i_base = ADS125X_READVOLT_HAL();
+        ADS125X_STANDBY_HAL();
+
+        // Espera híbrida hasta el final de la fase base
+        remaining = t_target - esp_timer_get_time();
+        if (remaining > 2000) {
+            vTaskDelay(pdMS_TO_TICKS(remaining / 1000 - 1));
+        }
+        while (esp_timer_get_time() < t_target);
+
+        // ====================================================
+        // FASE 2: PULSO
+        // ====================================================
+        t_target += pulse_width_us;
+
+        if (direction == 1)
+            MAX5217_DAC_WRITE_HAL_MV(dacindex + config->pulse_amplitude_mv);
+        else
+            MAX5217_DAC_WRITE_HAL_MV(dacindex - config->pulse_amplitude_mv);
+
+        // Espera híbrida hasta el trigger del ADC
+        t_adc_trigger = t_target - prop_delay_us;
+        remaining = t_adc_trigger - esp_timer_get_time();
+        if (remaining > 2000) {
+            vTaskDelay(pdMS_TO_TICKS(remaining / 1000 - 1));
+        }
+        while (esp_timer_get_time() < t_adc_trigger);
+
+        ADS125X_WAKEUP_HAL();
+        ADS125X_WAIT_DYDR_HAL();
+        i_pulse = ADS125X_READVOLT_HAL();
+        ADS125X_STANDBY_HAL();
+
+        // Espera híbrida hasta el final del pulso
+        remaining = t_target - esp_timer_get_time();
+        if (remaining > 2000) {
+            vTaskDelay(pdMS_TO_TICKS(remaining / 1000 - 1));
+        }
+        while (esp_timer_get_time() < t_target);
+
+        // ABORT check dentro del loop para períodos largos
+        if (ABORT_FLAG) goto abort_dpv;
+
+        // ====================================================
+        // PROCESAMIENTO — fuera del timing crítico
+        // ΔI = I_pulse - I_base  (cancela corriente capacitiva)
+        // ====================================================
+        pkt.dacindex = dacindex;
+        pkt.i_base   = i_base;
+        pkt.i_pulse  = i_pulse;
+
+        uart_write_bytes(UART_NUM_0, &pkt, sizeof(dvp_packet_t));
+
+        // Avanzar la rampa
+        if (direction == 1)
+            dacindex += config->step_pot_mv;
+        else
+            dacindex -= config->step_pot_mv;
+    }
+
+    // Finalización normal
+    VOLT_EXP_STOP();
+    ADS125X_STANDBY_HAL();
+    uart_write_bytes(UART_NUM_0, MSG_FINISHED, strlen(MSG_FINISHED));
+    return 0;
+
+abort_dpv:
+    VOLT_EXP_STOP();
+    ADS125X_STANDBY_HAL();
+    uart_write_bytes(UART_NUM_0, MSG_FINISHED, strlen(MSG_FINISHED));
+    ABORT_FLAG = 0;
+    return 1;
+}
 
 uint8_t execute_PA_experiment(PA_config *config)
 {

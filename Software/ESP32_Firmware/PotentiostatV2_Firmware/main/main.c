@@ -64,6 +64,10 @@ void experiment_exec_task(void *pvParameters)
         {
             execute_LSV_CV_experiment(&(exp_config_pointer->LSV));
         }
+        else if (main_fsm->current_experiment == EXP_DPV) 
+        {
+            execute_DPV_experiment(&(exp_config_pointer->DPV));
+        }
         else if (main_fsm->current_experiment == EXP_CPE) 
         {
             execute_CPE_experiment(&(exp_config_pointer->CPE));
