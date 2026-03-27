@@ -131,19 +131,28 @@ class DataViewerWindow(QWidget):
         return color
 
     def _load_csv(self, file_path):
-        """Lee el CSV y retorna (v_mv, i_ua) o None si el formato es inválido."""
         try:
-            v, i = [], []
             with open(file_path, newline='') as f:
                 reader = csv.DictReader(f)
-                # Verificar columnas requeridas
-                required = {'v_applied_mv', 'current_filtered_ma'}
-                if not required.issubset(set(reader.fieldnames or [])):
-                    return None
-                for row in reader:
-                    v.append(float(row['v_applied_mv']))
-                    i.append(float(row['current_filtered_ma']) * 1e3)  # mA → µA
-            return np.array(v), np.array(i)
+                fieldnames = set(reader.fieldnames or [])
+
+                # CPE: tiene Charge (C) — columna exclusiva
+                if 'Charge (C)' in fieldnames:
+                    x, i = [], []
+                    for row in reader:
+                        x.append(float(row['Timestamp (s)']))
+                        i.append(float(row['Current_filtered (mA)']))
+                    return np.array(x), np.array(i), 'CPE'
+
+                # SWV/LSV/DPV: tiene v_applied_mv — columna exclusiva
+                elif 'V_applied (mV)' in fieldnames:
+                    x, i = [], []
+                    for row in reader:
+                        x.append(float(row['V_applied (mV)']))
+                        i.append(float(row['Current_filtered (mA)']))
+                    return np.array(x), np.array(i), 'VOLTAMMETRY'
+
+                return None
         except Exception:
             return None
 
@@ -152,6 +161,37 @@ class DataViewerWindow(QWidget):
 
     # ── Acciones ──────────────────────────────────────────────────────
 
+
+    def _plot_dataset(self, name, x, i_ma, tipo):
+        """Plotea una curva aplicando auto-escala de unidades y configura ejes según tipo."""
+        # Auto-escala de corriente
+        max_val = np.max(np.abs(i_ma)) if len(i_ma) > 0 else 0
+        if max_val < 0.001:
+            mult, unit = 1e6, "nA"
+        elif max_val < 1.0:
+            mult, unit = 1e3, "µA"
+        else:
+            mult, unit = 1.0, "mA"
+
+        color = self._next_color()
+        curve = self.plot_widget.plot(
+            x, i_ma * mult,
+            pen=pg.mkPen(color=color, width=2),
+            name=name
+        )
+        self._curves[name] = {'curve': curve, 'color': color, 'tipo': tipo}
+
+        # Configurar ejes según técnica
+        axis_style = {
+            'color': '#1A1A1A', 'font-size': '13px',
+            'font-family': 'Segoe UI', 'font-weight': 'bold'
+        }
+        if tipo == 'CPE':
+            self.plot_widget.setLabel('bottom', 'Time', units='s', **axis_style)
+        else:
+            self.plot_widget.setLabel('bottom', 'Potential', units='mV', **axis_style)
+
+        self.plot_widget.setLabel('left', 'Current', units=unit, **axis_style)
 
     def _add_dataset(self):
         file_paths, _ = QFileDialog.getOpenFileNames(
@@ -174,13 +214,11 @@ class DataViewerWindow(QWidget):
                 from PyQt6.QtWidgets import QMessageBox
                 QMessageBox.warning(self, "Invalid File",
                     f"'{os.path.basename(file_path)}' does not have the expected format and was skipped.\n\n"
-                    "Required columns: v_applied_mv, current_filtered_ma")
+                    "Required columns: v_applied_mv + current_filtered_ma  OR  Timestamp (s) + Current_filtered (mA)")
                 continue
 
-            v, i = result
-            color = self._next_color()
-            curve = self.plot_widget.plot(v, i, pen=pg.mkPen(color=color, width=2), name=name)
-            self._curves[name] = {'curve': curve, 'color': color}
+            x, i, tipo = result
+            self._plot_dataset(name, x, i, tipo)
 
         if self._curves:
             self.btn_remove.setEnabled(True)
@@ -230,10 +268,9 @@ class DataViewerWindow(QWidget):
             name = f"{base_name} ({counter})"
             counter += 1
 
-        v, i = result
-        color = self._next_color()
-        curve = self.plot_widget.plot(v, i, pen=pg.mkPen(color=color, width=2), name=name)
-        self._curves[name] = {'curve': curve, 'color': color}
+        x, i, tipo = result
+        self._plot_dataset(name, x, i, tipo)
+
         self.btn_remove.setEnabled(True)
         self.btn_save.setEnabled(True)   # ← agregar
         self._unsaved_changes = True

@@ -38,19 +38,13 @@ SOFTWARE.
 #ifndef ADS1255_H
 #define	ADS1255_H
 
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-//#include "esp_log.h"
-//#include "esp_attr.h"
 #include "soc/spi_struct.h"
 #include "soc/spi_reg.h"
 
 #include "driver/spi_master.h"
 #include "driver/ledc.h"
-#include "gpio_config.h"
+#include "general.h"
 #include "esp_rom_sys.h"
-#include "esp_timer.h"
 #include "muxes.h"
 
 //#define DEBUG_ADS1255

@@ -5,4 +5,5 @@ __pycache__/
 exports/
 Software/leer_datos_serial_python.py
 Software/test_comandos.txt
+Ensayos/
 *.log

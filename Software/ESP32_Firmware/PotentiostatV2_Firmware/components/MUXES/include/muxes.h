@@ -12,7 +12,7 @@
 MIT License
 */
 
-#include "gpio_config.h"
+#include "general.h"
 
 #define     CONNECTED           1
 #define     DISCONNECTED        0
