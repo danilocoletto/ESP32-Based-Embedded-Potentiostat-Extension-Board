@@ -3390,7 +3390,7 @@
 		(uuid "8f53fdd9-eea3-4bd4-b3bb-62ed6fba4ab7")
 	)
 	(no_connect
-		(at 209.55 77.47)
+		(at 222.25 77.47)
 		(uuid "97f1857a-7d5a-49c7-b500-9c28e744396c")
 	)
 	(no_connect
@@ -3504,16 +3504,6 @@
 			(type default)
 		)
 		(uuid "1984f15e-10d8-4340-8ea0-2af17cbe8728")
-	)
-	(wire
-		(pts
-			(xy 222.25 77.47) (xy 224.79 77.47)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1c77f8e5-cc6c-4137-ad9d-6c3835596f6d")
 	)
 	(wire
 		(pts
@@ -4017,6 +4007,16 @@
 	)
 	(wire
 		(pts
+			(xy 204.47 77.47) (xy 209.55 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d14109b5-d4be-4893-8e04-2c92ab8c1d78")
+	)
+	(wire
+		(pts
 			(xy 119.38 44.45) (xy 124.46 44.45)
 		)
 		(stroke
@@ -4367,13 +4367,13 @@
 		(uuid "568e3a48-2d47-4a98-953b-b22defebd591")
 	)
 	(label "5V"
-		(at 224.79 77.47 0)
+		(at 204.47 77.47 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left bottom)
+			(justify right bottom)
 		)
 		(uuid "5e294aa5-b843-49b4-acd5-598cdccb12bb")
 	)
